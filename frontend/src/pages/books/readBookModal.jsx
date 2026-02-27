@@ -1,0 +1,157 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import "./readBookModal.css"
+import { X, BookOpen, ZoomIn, ZoomOut, Download, Maximize2, Minimize2 } from "lucide-react"
+
+// eslint-disable-next-line no-unused-vars
+function ReadBookModal({ isOpen, onClose, book, FOLDER_URL }) {
+    const [isFullscreen, setIsFullscreen] = useState(false)
+    // eslint-disable-next-line no-unused-vars
+    const [zoomLevel, setZoomLevel] = useState(100)
+    const [pdfExists, setPdfExists] = useState(null)
+
+    useEffect(() => {
+        if (book?.content) {
+            fetch(`http://localhost:3000/contents/${book.content}`, { method: "HEAD" })
+                .then((res) => setPdfExists(res.ok))
+                .catch(() => setPdfExists(false))
+        } else {
+            setPdfExists(false)
+        }
+    }, [book])
+
+    // Handle escape key to close modal
+    useEffect(() => {
+        const handleEscape = (e) => {
+            if (e.key === "Escape" && isOpen) {
+                onClose()
+            }
+        }
+
+        if (isOpen) {
+            document.addEventListener("keydown", handleEscape)
+            document.body.style.overflow = "hidden" // Prevent background scroll
+        }
+
+        return () => {
+            document.removeEventListener("keydown", handleEscape)
+            document.body.style.overflow = "unset"
+        }
+    }, [isOpen, onClose])
+
+    // const handleZoomIn = () => {
+    //     setZoomLevel((prev) => Math.min(prev + 25, 200))
+    // }
+
+    // const handleZoomOut = () => {
+    //     setZoomLevel((prev) => Math.max(prev - 25, 50))
+    // }
+
+    const handleFullscreen = () => {
+        setIsFullscreen(!isFullscreen)
+    }
+
+    // const handleDownload = () => {
+    //     if (book?.content) {
+    //         const link = document.createElement("a")
+    //         link.href = `http://localhost:3000/contents/${book.content}`
+    //         link.download = `${book.title}.pdf`
+    //         document.body.appendChild(link)
+    //         link.click()
+    //         document.body.removeChild(link)
+    //     }
+    // }
+
+    if (!isOpen || !book) return null
+
+    return (
+        <div className="readModalOverlay" onClick={onClose}>
+            <div className={`readBookModal ${isFullscreen ? "fullscreen" : ""}`} onClick={(e) => e.stopPropagation()}>
+                {/* Modal Header */}
+                <div className="readModalHeader">
+                    <div className="bookInfo">
+                        <BookOpen size={20} className="bookIcon" />
+                        <div className="bookDetails">
+                            <h3 className="bookTitle">{book.title}</h3>
+                            <p className="bookAuthor">by {book.author}</p>
+                        </div>
+                    </div>
+
+                    <div className="modalControls">
+                        {/* <button className="controlBtn" onClick={handleZoomOut} title="Zoom Out" disabled={zoomLevel <= 50}>
+                            <ZoomOut size={18} />
+                        </button>
+
+                        <span className="zoomLevel">{zoomLevel}%</span>
+
+                        <button className="controlBtn" onClick={handleZoomIn} title="Zoom In" disabled={zoomLevel >= 200}>
+                            <ZoomIn size={18} />
+                        </button> */}
+
+                        <div className="controlDivider"></div>
+
+                        {/* <button className="controlBtn" onClick={handleDownload} title="Download PDF">
+                            <Download size={18} />
+                        </button> */}
+
+                        <button
+                            className="controlBtn"
+                            onClick={handleFullscreen}
+                            title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                        >
+                            {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+                        </button>
+
+                        <button className="controlBtn closeBtn" onClick={onClose} title="Close">
+                            <X size={20} />
+                        </button>
+                    </div>
+                </div>
+
+                {/* PDF Content */}
+                <div className="pdfContainer">
+                    {pdfExists === null ? (
+                        <div className="loadingOverlay">
+                            <div className="loadingSpinner">
+                                <div className="spinner"></div>
+                                <p>Loading PDF...</p>
+                            </div>
+                        </div>
+                    ) : pdfExists ? (
+                        <div className="pdfWrapper" style={{ transform: `scale(${zoomLevel / 100})` }}>
+                            <embed
+                                src={`http://localhost:3000/contents/${book.content}#toolbar=0&navpanes=0&scrollbar=0`}
+                                type="application/pdf"
+                                width="100%"
+                                height="100%"
+                                className="pdfEmbed"
+                            />
+                        </div>
+                    ) : (
+                        <div className="noPdfContent">
+                            <div className="noPdfMessage">
+                                <BookOpen size={64} className="noPdfIcon" />
+                                <h3>No content available</h3>
+                                <p>This book doesn't have a readable file.</p>
+                                <button className="closeNoContentBtn" onClick={onClose}>
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Loading Overlay */}
+                <div className="loadingOverlay">
+                    <div className="loadingSpinner">
+                        <div className="spinner"></div>
+                        <p>Loading PDF...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+export default ReadBookModal

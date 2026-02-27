@@ -1,0 +1,461 @@
+/* Edit Modal Overlay */
+.editModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+  animation: editModalFadeIn 0.3s ease-out;
+}
+
+@keyframes editModalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Edit Modal Container */
+.editBookModal {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: editModalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid #e5e7eb;
+}
+
+@keyframes editModalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Edit Modal Header */
+.editModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 28px;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-radius: 16px 16px 0 0;
+}
+
+.editModalHeader h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e40af;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.editCloseBtn {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.editCloseBtn:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+.editCloseBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Edit Modal Content */
+.editModalContent {
+  padding: 28px;
+}
+
+/* Edit Form Styles */
+.editBookForm {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.editFormGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.editFormGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.editFormGroup.editFullWidth {
+  grid-column: 1 / -1;
+}
+
+.editFormGroup label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.editFormGroup input,
+.editFormGroup select,
+.editFormGroup textarea {
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.editFormGroup input:focus,
+.editFormGroup select:focus,
+.editFormGroup textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.editFormGroup input:disabled,
+.editFormGroup select:disabled,
+.editFormGroup textarea:disabled {
+  background: #f9fafb;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.editFormGroup textarea {
+  resize: vertical;
+  min-height: 90px;
+  font-family: inherit;
+}
+
+.editFormGroup input::placeholder,
+.editFormGroup textarea::placeholder {
+  color: #9ca3af;
+}
+
+/* Current File Display */
+.editCurrentFile {
+  margin-bottom: 8px;
+}
+
+.currentCover {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 6px;
+}
+
+.currentCover img {
+  width: 40px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.currentCover span {
+  font-size: 13px;
+  color: #0369a1;
+  font-weight: 500;
+}
+
+.currentContent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 6px;
+}
+
+.currentContent span {
+  font-size: 13px;
+  color: #0369a1;
+  font-weight: 500;
+}
+
+/* Edit File Upload Styles */
+.editFileUploads {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.editFileInputWrapper {
+  position: relative;
+}
+
+.editFileInputWrapper input[type="file"] {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.editFileLabel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  background: #f9fafb;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  min-height: 52px;
+}
+
+.editFileLabel:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  color: #3b82f6;
+}
+
+.editFileLabel svg {
+  flex-shrink: 0;
+  color: #6b7280;
+  transition: color 0.2s ease;
+}
+
+.editFileLabel:hover svg {
+  color: #3b82f6;
+}
+
+.editFileText {
+  flex: 1;
+  min-width: 0;
+}
+
+.editFileSelected {
+  color: #059669;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.editFilePlaceholder {
+  color: #6b7280;
+}
+
+/* Edit Form Note */
+.editFormNote {
+  margin-top: -8px;
+  margin-bottom: -8px;
+}
+
+.editFormNote p {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0;
+  font-style: italic;
+}
+
+/* Edit Modal Actions */
+.editModalActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.editCancelBtn {
+  padding: 12px 20px;
+  background: white;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.editCancelBtn:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+.editCancelBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.editSaveBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 140px;
+  justify-content: center;
+}
+
+.editSaveBtn:hover:not(:disabled) {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.editSaveBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.editSaveBtn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Loading State */
+.editSpinner {
+  animation: editSpinAnimation 1s linear infinite;
+}
+
+@keyframes editSpinAnimation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .editModalOverlay {
+    padding: 16px;
+  }
+
+  .editBookModal {
+    max-width: none;
+    width: 100%;
+    max-height: 95vh;
+  }
+
+  .editModalHeader {
+    padding: 20px;
+  }
+
+  .editModalContent {
+    padding: 20px;
+  }
+
+  .editFormGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .editFileUploads {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .editModalActions {
+    flex-direction: column-reverse;
+    gap: 12px;
+  }
+
+  .editCancelBtn,
+  .editSaveBtn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .editModalOverlay {
+    padding: 12px;
+  }
+
+  .editModalHeader {
+    padding: 16px;
+  }
+
+  .editModalContent {
+    padding: 16px;
+  }
+
+  .editModalHeader h2 {
+    font-size: 18px;
+  }
+
+  .editFileLabel {
+    padding: 12px;
+    font-size: 13px;
+  }
+}
+
+/* Custom Scrollbar */
+.editBookModal::-webkit-scrollbar {
+  width: 6px;
+}
+
+.editBookModal::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.editBookModal::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.editBookModal::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Focus styles for accessibility */
+.editCloseBtn:focus-visible,
+.editCancelBtn:focus-visible,
+.editSaveBtn:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
