@@ -18,3 +18,9 @@ yarn-error.log*
 
 # Unwanted Folder
 old/
+
+# Unwanted Files
+backend/uploads/contents/*
+backend/uploads/covers/*
+!backend/uploads/contents/.gitkeep
+!backend/uploads/covers/.gitkeep
