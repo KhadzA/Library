@@ -17,7 +17,7 @@ function Login() {
     const queryParams = new URLSearchParams(location.search)
     const registrationSuccess = queryParams.get("registration_success") === "true"
 
-    const [username, setUsername] = useState("")
+    const [identifier, setIdentifier] = useState("")
     const [password, setPassword] = useState("")
     const [rememberMe, setRemember] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
@@ -27,7 +27,7 @@ function Login() {
         setIsLoading(true)
 
         try {
-            const result = await loginUser(username, password, rememberMe)
+            const result = await loginUser(identifier, password, rememberMe)
 
             if (result.success) {
                 console.log("Logged in!", result.data)
@@ -92,8 +92,8 @@ function Login() {
                             id="username"
                             type="text"
                             placeholder="Enter your username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            value={identifier}
+                            onChange={(e) => setIdentifier(e.target.value)}
                             className="form-input"
                             required
                             disabled={isLoading}
@@ -141,7 +141,7 @@ function Login() {
                         </label>
                     </div>
 
-                    <button type="submit" className="login-button" disabled={isLoading || !username || !password}>
+                    <button type="submit" className="login-button" disabled={isLoading || !identifier || !password}>
                         {isLoading ? (
                             <>
                                 <Loader2 size={18} className="loading-spinner" />

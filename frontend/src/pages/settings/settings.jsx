@@ -3,23 +3,58 @@
 import { useState, useEffect } from "react"
 import AuthGuard from "../../components/AuthGuard"
 import { useSocketConnection } from "../../hooks/useSocketConnection"
+import { getProfile, updateProfile, changePassword } from "../../api/settings"
+
 import { Mail, Lock, User, Palette, Check, Eye, EyeOff, Moon, Sun } from "lucide-react"
 import "./settings.css"
 
 function Settings() {
     useSocketConnection()
 
+    const [name, setName] = useState("")
+    const [email, setEmail] = useState("")
+    const [department, setDepartment] = useState("")
+    const [currentPassword, setCurrentPassword] = useState("")
+    const [newPassword, setNewPassword] = useState("")
+    const [confirmPassword, setConfirmPassword] = useState("")
+    const [profileMsg, setProfileMsg] = useState("")
+    const [passwordMsg, setPasswordMsg] = useState("")
     const [theme, setTheme] = useState("light")
     const [showCurrentPassword, setShowCurrentPassword] = useState(false)
     const [showNewPassword, setShowNewPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
-    // Load theme from localStorage on component mount
+
     useEffect(() => {
         const savedTheme = localStorage.getItem("theme") || "light"
         setTheme(savedTheme)
         document.documentElement.setAttribute("data-theme", savedTheme)
+
+        // Load real user data
+        getProfile().then((res) => {
+            if (res.success) {
+                setName(res.data.name)
+                setEmail(res.data.email)
+                setDepartment(res.data.department || "")
+            }
+        })
     }, [])
+
+    const handleProfileSave = async () => {
+        const res = await updateProfile(name, email, department)
+        setProfileMsg(res.success ? "Profile updated!" : res.error?.response?.data?.message || "Update failed.")
+    }
+
+    const handlePasswordUpdate = async () => {
+        if (newPassword !== confirmPassword) return setPasswordMsg("Passwords do not match.")
+        const res = await changePassword(currentPassword, newPassword)
+        setPasswordMsg(res.success ? "Password updated!" : res.error?.response?.data?.message || "Update failed.")
+        if (res.success) {
+            setCurrentPassword("")
+            setNewPassword("")
+            setConfirmPassword("")
+        }
+    }
 
     // Handle theme toggle
     const handleThemeToggle = (newTheme) => {
@@ -92,7 +127,8 @@ function Settings() {
                                     <input
                                         type="text"
                                         className="form-input"
-                                        defaultValue="John Doe"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
                                         placeholder="Enter your full name"
                                     />
                                 </div>
@@ -101,13 +137,14 @@ function Settings() {
                                     <input
                                         type="email"
                                         className="form-input"
-                                        defaultValue="john.doe@university.edu"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
                                         placeholder="Enter your email address"
                                     />
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Department</label>
-                                    <select className="form-select">
+                                    <select className="form-select" value={department} onChange={(e) => setDepartment(e.target.value)}>
                                         <option value="computer-science">Computer Science</option>
                                         <option value="mathematics">Mathematics</option>
                                         <option value="physics">Physics</option>
@@ -117,9 +154,10 @@ function Settings() {
                                         <option value="history">History</option>
                                     </select>
                                 </div>
+                                {profileMsg && <p className="form-message">{profileMsg}</p>}
                                 <div className="form-actions">
-                                    <button className="btn btn-primary">Save Changes</button>
-                                    <button className="btn btn-secondary">Cancel</button>
+                                    <button className="btn btn-primary" onClick={handleProfileSave}>Save Changes</button>
+                                    <button className="btn btn-secondary" onClick={() => setProfileMsg("")}>Cancel</button>
                                 </div>
                             </div>
                         </div>
@@ -168,6 +206,8 @@ function Settings() {
                                         <input
                                             type={showCurrentPassword ? "text" : "password"}
                                             className="form-input"
+                                            value={currentPassword}
+                                            onChange={(e) => setCurrentPassword(e.target.value)}
                                             placeholder="Enter current password"
                                         />
                                         <button
@@ -185,6 +225,8 @@ function Settings() {
                                         <input
                                             type={showNewPassword ? "text" : "password"}
                                             className="form-input"
+                                            value={newPassword}
+                                            onChange={(e) => setNewPassword(e.target.value)}
                                             placeholder="Enter new password"
                                         />
                                         <button
@@ -202,6 +244,8 @@ function Settings() {
                                         <input
                                             type={showConfirmPassword ? "text" : "password"}
                                             className="form-input"
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
                                             placeholder="Confirm new password"
                                         />
                                         <button
@@ -223,9 +267,10 @@ function Settings() {
                                         <li>Contains at least one special character</li>
                                     </ul>
                                 </div>
+                                {passwordMsg && <p className="form-message">{passwordMsg}</p>}
                                 <div className="form-actions">
-                                    <button className="btn btn-primary">Update Password</button>
-                                    <button className="btn btn-secondary">Cancel</button>
+                                    <button className="btn btn-primary" onClick={handlePasswordUpdate}>Update Password</button>
+                                    <button className="btn btn-secondary" onClick={() => setPasswordMsg("")}>Cancel</button>
                                 </div>
                             </div>
                         </div>
