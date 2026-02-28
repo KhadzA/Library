@@ -11,7 +11,8 @@
   justify-content: center;
   background-color: #f8fafc;
   padding: 1rem;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
 }
 
 .signup-card {
@@ -58,6 +59,18 @@
   /* gap: 1.5rem; */
 }
 
+.signup-form .form-input {
+  color: #111827 !important;
+}
+
+.signup-form .form-input::placeholder {
+  color: #9ca3af !important;
+}
+
+.signup-form .password-toggle {
+  color: #6b7280 !important;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
@@ -75,7 +88,9 @@
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 1rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
   background-color: white;
 }
 
@@ -114,7 +129,9 @@
   cursor: pointer;
   padding: 0.25rem;
   color: #6b7280;
-  transition: color 0.2s, background-color 0.2s;
+  transition:
+    color 0.2s,
+    background-color 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -157,7 +174,23 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  margin-bottom: .5rem;
+  margin-bottom: 0.5rem;
+}
+
+.signup-button .loading-spinner {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.signup-button svg {
+  width: 16px !important;
+  height: 16px !important;
+  vertical-align: middle;
+  margin: 0;
 }
 
 .signup-button:hover:not(:disabled) {
@@ -273,7 +306,9 @@
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 6px;
-  transition: color 0.2s, background-color 0.2s;
+  transition:
+    color 0.2s,
+    background-color 0.2s;
 }
 
 .back-home-button:hover:not(:disabled) {
@@ -284,4 +319,89 @@
 .back-home-button:disabled {
   color: #9ca3af;
   cursor: not-allowed;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #0f172a;
+  }
+
+  .signup-container {
+    background-color: #0f172a;
+  }
+
+  .signup-card {
+    background: #1e293b;
+    border-color: #334155;
+  }
+
+  .signup-title {
+    color: #f8fafc;
+  }
+
+  .signup-subtitle {
+    color: #94a3b8;
+  }
+
+  .form-label {
+    color: #cbd5e1;
+  }
+
+  .signup-form .form-input {
+    background-color: #334155 !important;
+    border-color: #475569;
+    color: #f8fafc !important;
+  }
+
+  .signup-form .form-input::placeholder {
+    color: #64748b !important;
+  }
+
+  .signup-form .form-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+
+  .signup-form .form-input.error {
+    border-color: #ef4444;
+  }
+
+  .signup-form .form-input.success {
+    border-color: #10b981;
+  }
+
+  .signup-form .password-toggle {
+    color: #94a3b8 !important;
+  }
+
+  .login-link {
+    color: #94a3b8;
+  }
+
+  .back-home-button {
+    color: #94a3b8;
+  }
+
+  .back-home-button:hover:not(:disabled) {
+    color: #cbd5e1;
+    background-color: #1e293b;
+  }
+
+  .form-checkbox {
+    color-scheme: dark;
+  }
+
+  .password-toggle:hover:not(:disabled) {
+    background-color: #475569 !important;
+    color: #cbd5e1 !important;
+  }
+
+  .password-toggle:focus {
+    background-color: #475569 !important;
+    color: #93c5fd !important;
+  }
+
+  .password-toggle:active {
+    background-color: #475569 !important;
+  }
 }

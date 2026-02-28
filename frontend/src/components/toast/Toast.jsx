@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import "./Toast.css"
+import { CheckCircle, XCircle, Info } from "lucide-react"
 
 let toastId = 0
 
@@ -9,43 +10,42 @@ const Toast = ({ toasts, removeToast }) => {
     return (
         <div className="toast-container">
             {toasts.map((toast) => (
-                <div key={toast.id} className={`toast toast-${toast.type}`} onClick={() => removeToast(toast.id)}>
+                <div key={toast.id} className={`toast toast-${toast.type}`}>
                     <div className="toast-content">
-                        <span className="toast-icon">{toast.type === "success" ? "✓" : toast.type === "error" ? "✕" : "ℹ"}</span>
-                        <span className="toast-message">{toast.message}</span>
+                        <div className="toast-icon-wrapper">
+                            {toast.type === "success" && <CheckCircle size={18} />}
+                            {toast.type === "error" && <XCircle size={18} />}
+                            {toast.type === "info" && <Info size={18} />}
+                        </div>
+                        <div className="toast-text">
+                            <span className="toast-title">{toast.title}</span>
+                            <span className="toast-message">{toast.message}</span>
+                        </div>
                     </div>
-                    <button className="toast-close" onClick={() => removeToast(toast.id)}>
-                        ×
-                    </button>
+                    <button className="toast-close" onClick={() => removeToast(toast.id)}>×</button>
                 </div>
             ))}
         </div>
     )
 }
 
-// Toast hook
 export const useToast = () => {
     const [toasts, setToasts] = useState([])
 
-    const addToast = (message, type = "info", duration = 4000) => {
+    const addToast = (title, message, type = "info", duration = 4000) => {
         const id = ++toastId
-        const toast = { id, message, type }
-
-        setToasts((prev) => [...prev, toast])
-
-        setTimeout(() => {
-            removeToast(id)
-        }, duration)
+        setToasts((prev) => [...prev, { id, title, message, type }])
+        setTimeout(() => removeToast(id), duration)
     }
 
     const removeToast = (id) => {
-        setToasts((prev) => prev.filter((toast) => toast.id !== id))
+        setToasts((prev) => prev.filter((t) => t.id !== id))
     }
 
     const toast = {
-        success: (message, duration) => addToast(message, "success", duration),
-        error: (message, duration) => addToast(message, "error", duration),
-        info: (message, duration) => addToast(message, "info", duration),
+        success: (title, message, duration) => addToast(title, message, "success", duration),
+        error: (title, message, duration) => addToast(title, message, "error", duration),
+        info: (title, message, duration) => addToast(title, message, "info", duration),
     }
 
     return { toast, toasts, removeToast }

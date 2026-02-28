@@ -6,6 +6,7 @@ import { useSocketConnection } from "../../hooks/useSocketConnection"
 import { getProfile, updateProfile, changePassword } from "../../api/settings"
 
 import { Mail, Lock, User, Palette, Check, Eye, EyeOff, Moon, Sun } from "lucide-react"
+import Toast, { useToast } from "../../components/toast/Toast.jsx"
 import "./settings.css"
 
 function Settings() {
@@ -17,12 +18,12 @@ function Settings() {
     const [currentPassword, setCurrentPassword] = useState("")
     const [newPassword, setNewPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
-    const [profileMsg, setProfileMsg] = useState("")
-    const [passwordMsg, setPasswordMsg] = useState("")
     const [theme, setTheme] = useState("light")
     const [showCurrentPassword, setShowCurrentPassword] = useState(false)
     const [showNewPassword, setShowNewPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+    const { toast, toasts, removeToast } = useToast()
+
 
 
     useEffect(() => {
@@ -42,17 +43,23 @@ function Settings() {
 
     const handleProfileSave = async () => {
         const res = await updateProfile(name, email, department)
-        setProfileMsg(res.success ? "Profile updated!" : res.error?.response?.data?.message || "Update failed.")
+        if (res.success) {
+            toast.success("Profile updated successfully!")
+        } else {
+            toast.error(res.error?.response?.data?.message || "Update failed.")
+        }
     }
 
     const handlePasswordUpdate = async () => {
-        if (newPassword !== confirmPassword) return setPasswordMsg("Passwords do not match.")
+        if (newPassword !== confirmPassword) return toast.error("Passwords do not match.")
         const res = await changePassword(currentPassword, newPassword)
-        setPasswordMsg(res.success ? "Password updated!" : res.error?.response?.data?.message || "Update failed.")
         if (res.success) {
+            toast.success("Password updated successfully!")
             setCurrentPassword("")
             setNewPassword("")
             setConfirmPassword("")
+        } else {
+            toast.error(res.error?.response?.data?.message || "Update failed.")
         }
     }
 
@@ -154,10 +161,9 @@ function Settings() {
                                         <option value="history">History</option>
                                     </select>
                                 </div>
-                                {profileMsg && <p className="form-message">{profileMsg}</p>}
                                 <div className="form-actions">
                                     <button className="btn btn-primary" onClick={handleProfileSave}>Save Changes</button>
-                                    <button className="btn btn-secondary" onClick={() => setProfileMsg("")}>Cancel</button>
+                                    <button className="btn btn-secondary" onClick={() => toast.removeToast(toasts[0])}>Cancel</button>
                                 </div>
                             </div>
                         </div>
@@ -267,16 +273,16 @@ function Settings() {
                                         <li>Contains at least one special character</li>
                                     </ul>
                                 </div>
-                                {passwordMsg && <p className="form-message">{passwordMsg}</p>}
                                 <div className="form-actions">
                                     <button className="btn btn-primary" onClick={handlePasswordUpdate}>Update Password</button>
-                                    <button className="btn btn-secondary" onClick={() => setPasswordMsg("")}>Cancel</button>
+                                    <button className="btn btn-secondary" onClick={() => toast.removeToast(toasts[0])}>Cancel</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <Toast toasts={toasts} removeToast={removeToast} />
         </AuthGuard>
     )
 }
