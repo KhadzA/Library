@@ -97,5 +97,31 @@ module.exports = (db) => {
     );
   });
 
+  // GET avatar color
+  router.get("/avatar-color", authenticate, (req, res) => {
+    const sql = "SELECT avatar_color FROM users WHERE id = ?";
+    db.query(sql, [req.user.id], (err, results) => {
+      if (err) return res.status(500).json({ message: "Server error" });
+      if (results.length === 0)
+        return res.status(404).json({ message: "User not found" });
+      res.json({ color: results[0].avatar_color || "#3b82f6" });
+    });
+  });
+
+  // PUT avatar color
+  router.put("/avatar-color", authenticate, (req, res) => {
+    const { color } = req.body;
+    if (!color) return res.status(400).json({ message: "Color is required" });
+
+    db.query(
+      "UPDATE users SET avatar_color = ? WHERE id = ?",
+      [color, req.user.id],
+      (err) => {
+        if (err) return res.status(500).json({ message: "Server error" });
+        res.json({ message: "Avatar color updated successfully" });
+      },
+    );
+  });
+
   return router;
 };

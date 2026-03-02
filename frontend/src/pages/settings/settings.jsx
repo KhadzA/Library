@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react"
 import AuthGuard from "../../components/AuthGuard"
 import { useSocketConnection } from "../../hooks/useSocketConnection"
-import { getProfile, updateProfile, changePassword } from "../../api/settings"
+import { getProfile, updateProfile, changePassword, getAvatarColor, updateAvatarColor } from "../../api/settings"
 
-import { Mail, Lock, User, Palette, Check, Eye, EyeOff, Moon, Sun } from "lucide-react"
+import { Settings as SettingsIcon, UserCircle, Mail, Lock, User, Palette, Check, Eye, EyeOff, Moon, Sun } from "lucide-react"
 import Toast, { useToast } from "../../components/toast/Toast.jsx"
 import "./settings.css"
 
@@ -23,6 +23,8 @@ function Settings() {
     const [showNewPassword, setShowNewPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const { toast, toasts, removeToast } = useToast()
+    const [avatarColor, setAvatarColor] = useState("#3b82f6")
+
 
 
 
@@ -39,6 +41,10 @@ function Settings() {
                 setDepartment(res.data.department || "")
             }
         })
+
+        getAvatarColor().then((res) => {
+            if (res.success) setAvatarColor(res.data.color)
+        })
     }, [])
 
     const handleProfileSave = async () => {
@@ -47,6 +53,18 @@ function Settings() {
             toast.success("Profile updated successfully!")
         } else {
             toast.error(res.error?.response?.data?.message || "Update failed.")
+        }
+    }
+
+    const handleAvatarColorSave = async (color) => {
+        const res = await updateAvatarColor(color)
+        if (res.success) {
+            setAvatarColor(color)
+            localStorage.setItem("avatarColor", color)
+            window.dispatchEvent(new CustomEvent("avatarColorChanged", { detail: { color } }))
+            toast.success("Avatar color updated!")
+        } else {
+            toast.error("Failed to update avatar color.")
         }
     }
 
@@ -74,12 +92,58 @@ function Settings() {
         <AuthGuard allowedRoles={["admin", "librarian", "student"]}>
             <div className="settings-page">
                 <div className="settings-container">
-                    <div className="settings-header">
-                        <h1 className="settings-title">Settings</h1>
-                        <p className="settings-subtitle">Manage your account preferences and security settings</p>
+                    <div className="page-header">
+                        <div className="header-title">
+                            <SettingsIcon size={28} className="title-icon" />
+                            <div>
+                                <h1>Settings</h1>
+                                <p>Manage your account preferences and security settings</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="settings-content">
+                        {/* Avatar Section */}
+                        <div className="settings-section">
+                            <div className="section-header">
+                                <div className="section-icon">
+                                    <UserCircle size={20} />
+                                </div>
+                                <div className="section-info">
+                                    <h2 className="section-title">Avatar</h2>
+                                    <p className="section-description">Customize your profile avatar</p>
+                                </div>
+                            </div>
+                            <div className="section-content">
+                                <div className="avatar-preview-row">
+                                    <div className="avatar-large" style={{ backgroundColor: avatarColor }}>
+                                        {name ? name.charAt(0).toUpperCase() : "?"}
+                                    </div>
+                                    <div className="avatar-info">
+                                        <p className="setting-label">Avatar Color</p>
+                                        <p className="setting-description">Pick a background color for your avatar</p>
+                                    </div>
+                                </div>
+                                <div className="color-presets">
+                                    {["#3b82f6", "#8b5cf6", "#10b981", "#ef4444", "#f59e0b", "#ec4899", "#06b6d4", "#64748b"].map((color) => (
+                                        <button
+                                            key={color}
+                                            className={`color-swatch ${avatarColor === color ? "selected" : ""}`}
+                                            style={{ backgroundColor: color }}
+                                            onClick={() => handleAvatarColorSave(color)}
+                                        />
+                                    ))}
+                                    <input
+                                        type="color"
+                                        className="color-picker-input"
+                                        value={avatarColor}
+                                        onChange={(e) => handleAvatarColorSave(e.target.value)}
+                                        title="Custom color"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Theme Settings - Functional */}
                         <div className="settings-section">
                             <div className="section-header">

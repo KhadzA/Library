@@ -15,12 +15,18 @@ function PageLayout({ children }) {
     const [isLoggingOut, setIsLoggingOut] = useState(false)
     const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
     const [sidebarOpen, setSidebarOpen] = useState(false)
+    const [avatarColor, setAvatarColor] = useState(localStorage.getItem("avatarColor") || "#3b82f6")
 
     useEffect(() => {
         const role = localStorage.getItem("userRole")
         const name = localStorage.getItem("user") || "User"
         setUserRole(role)
         setUserName(name)
+
+        // Listen for avatar color changes from settings
+        const handleColorChange = (e) => setAvatarColor(e.detail.color)
+        window.addEventListener("avatarColorChanged", handleColorChange)
+        return () => window.removeEventListener("avatarColorChanged", handleColorChange)
     }, [])
 
     const handleLogout = async () => {
@@ -97,7 +103,13 @@ function PageLayout({ children }) {
 
                     <div className="headerRight">
                         <div className="user-profile">
-                            <div className="user-avatar">{getUserInitials(userName)}</div>
+                            <div
+                                className="user-avatar"
+                                style={{ backgroundColor: avatarColor }}
+                                onClick={() => navigate("/settings")}
+                            >
+                                {getUserInitials(userName)}
+                            </div>
                         </div>
                     </div>
                 </div>

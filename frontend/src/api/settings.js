@@ -45,3 +45,27 @@ export const changePassword = async (currentPassword, newPassword) => {
     return { success: false, error: err };
   }
 };
+
+// Get avatar color
+export const getAvatarColor = async () => {
+  try {
+    const res = await axios.get(`${BASE_URL}/avatar-color`, authHeaders());
+    return { success: true, data: res.data };
+  } catch (err) {
+    return { success: false, error: err };
+  }
+};
+
+// Update avatar color
+export const updateAvatarColor = async (color) => {
+  try {
+    const res = await axios.put(
+      `${BASE_URL}/avatar-color`,
+      { color },
+      authHeaders(),
+    );
+    return { success: true, data: res.data };
+  } catch (err) {
+    return { success: false, error: err };
+  }
+};
