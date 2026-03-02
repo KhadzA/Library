@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import AuthGuard from "../../components/AuthGuard"
 import { useSocketConnection } from "../../hooks/useSocketConnection"
 import { getProfile, updateProfile, changePassword, getAvatarColor, updateAvatarColor } from "../../api/settings"
-
 import { Settings as SettingsIcon, UserCircle, Mail, Lock, User, Palette, Check, Eye, EyeOff, Moon, Sun } from "lucide-react"
 import Toast, { useToast } from "../../components/toast/Toast.jsx"
 import "./settings.css"
@@ -12,33 +11,39 @@ import "./settings.css"
 function Settings() {
     useSocketConnection()
 
+    const { toast, toasts, removeToast } = useToast()
+
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [department, setDepartment] = useState("")
+    const [originalProfile, setOriginalProfile] = useState({})
+
     const [currentPassword, setCurrentPassword] = useState("")
     const [newPassword, setNewPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
+
     const [theme, setTheme] = useState("light")
+    const [avatarColor, setAvatarColor] = useState("#3b82f6")
+
     const [showCurrentPassword, setShowCurrentPassword] = useState(false)
     const [showNewPassword, setShowNewPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-    const { toast, toasts, removeToast } = useToast()
-    const [avatarColor, setAvatarColor] = useState("#3b82f6")
-
-
-
 
     useEffect(() => {
         const savedTheme = localStorage.getItem("theme") || "light"
         setTheme(savedTheme)
         document.documentElement.setAttribute("data-theme", savedTheme)
 
-        // Load real user data
         getProfile().then((res) => {
             if (res.success) {
                 setName(res.data.name)
                 setEmail(res.data.email)
                 setDepartment(res.data.department || "")
+                setOriginalProfile({
+                    name: res.data.name,
+                    email: res.data.email,
+                    department: res.data.department || "",
+                })
             }
         })
 
@@ -50,10 +55,17 @@ function Settings() {
     const handleProfileSave = async () => {
         const res = await updateProfile(name, email, department)
         if (res.success) {
+            setOriginalProfile({ name, email, department })
             toast.success("Profile updated successfully!")
         } else {
             toast.error(res.error?.response?.data?.message || "Update failed.")
         }
+    }
+
+    const handleProfileCancel = () => {
+        setName(originalProfile.name || "")
+        setEmail(originalProfile.email || "")
+        setDepartment(originalProfile.department || "")
     }
 
     const handleAvatarColorSave = async (color) => {
@@ -81,12 +93,17 @@ function Settings() {
         }
     }
 
-    // Handle theme toggle
+    const handlePasswordCancel = () => {
+        setCurrentPassword("")
+        setNewPassword("")
+        setConfirmPassword("")
+    }
+
     const handleThemeToggle = (newTheme) => {
-        setTheme(newTheme);
-        localStorage.setItem("theme", newTheme);
-        document.documentElement.setAttribute("data-theme", newTheme);
-    };
+        setTheme(newTheme)
+        localStorage.setItem("theme", newTheme)
+        document.documentElement.setAttribute("data-theme", newTheme)
+    }
 
     return (
         <AuthGuard allowedRoles={["admin", "librarian", "student"]}>
@@ -103,7 +120,7 @@ function Settings() {
                     </div>
 
                     <div className="settings-content">
-                        {/* Avatar Section */}
+                        {/* Avatar */}
                         <div className="settings-section">
                             <div className="section-header">
                                 <div className="section-icon">
@@ -144,7 +161,7 @@ function Settings() {
                             </div>
                         </div>
 
-                        {/* Theme Settings - Functional */}
+                        {/* Appearance */}
                         <div className="settings-section">
                             <div className="section-header">
                                 <div className="section-icon">
@@ -181,7 +198,7 @@ function Settings() {
                             </div>
                         </div>
 
-                        {/* Account Information - Dummy */}
+                        {/* Account Information */}
                         <div className="settings-section">
                             <div className="section-header">
                                 <div className="section-icon">
@@ -227,7 +244,7 @@ function Settings() {
                                 </div>
                                 <div className="form-actions">
                                     <button className="btn btn-primary" onClick={handleProfileSave}>Save Changes</button>
-                                    <button className="btn btn-secondary" onClick={() => toast.removeToast(toasts[0])}>Cancel</button>
+                                    <button className="btn btn-secondary" onClick={handleProfileCancel}>Cancel</button>
                                 </div>
                             </div>
                         </div>
@@ -249,7 +266,7 @@ function Settings() {
                                         <Check size={16} />
                                         <span>Email Verified</span>
                                     </div>
-                                    <p className="status-description">Your email address john.doe@university.edu has been verified.</p>
+                                    <p className="status-description">Your email address has been verified.</p>
                                 </div>
                                 <div className="form-actions">
                                     <button className="btn btn-outline">Resend Verification Email</button>
@@ -258,7 +275,7 @@ function Settings() {
                             </div>
                         </div>
 
-                        {/* Password Reset - Dummy */}
+                        {/* Password & Security */}
                         <div className="settings-section">
                             <div className="section-header">
                                 <div className="section-icon">
@@ -280,11 +297,7 @@ function Settings() {
                                             onChange={(e) => setCurrentPassword(e.target.value)}
                                             placeholder="Enter current password"
                                         />
-                                        <button
-                                            type="button"
-                                            className="password-toggle"
-                                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                        >
+                                        <button type="button" className="password-toggle" onClick={() => setShowCurrentPassword(!showCurrentPassword)}>
                                             {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                         </button>
                                     </div>
@@ -299,11 +312,7 @@ function Settings() {
                                             onChange={(e) => setNewPassword(e.target.value)}
                                             placeholder="Enter new password"
                                         />
-                                        <button
-                                            type="button"
-                                            className="password-toggle"
-                                            onClick={() => setShowNewPassword(!showNewPassword)}
-                                        >
+                                        <button type="button" className="password-toggle" onClick={() => setShowNewPassword(!showNewPassword)}>
                                             {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                         </button>
                                     </div>
@@ -318,11 +327,7 @@ function Settings() {
                                             onChange={(e) => setConfirmPassword(e.target.value)}
                                             placeholder="Confirm new password"
                                         />
-                                        <button
-                                            type="button"
-                                            className="password-toggle"
-                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        >
+                                        <button type="button" className="password-toggle" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
                                             {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                         </button>
                                     </div>
@@ -339,7 +344,7 @@ function Settings() {
                                 </div>
                                 <div className="form-actions">
                                     <button className="btn btn-primary" onClick={handlePasswordUpdate}>Update Password</button>
-                                    <button className="btn btn-secondary" onClick={() => toast.removeToast(toasts[0])}>Cancel</button>
+                                    <button className="btn btn-secondary" onClick={handlePasswordCancel}>Cancel</button>
                                 </div>
                             </div>
                         </div>
