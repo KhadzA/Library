@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { logoutUser, inactiveStatus } from "../../api/auth"
+import { getAvatarColor } from "../../api/settings"
 import "./layout.css"
 import { X, LogOut, Loader2, Home, BookOpen, Menu, ChevronLeft, Users, Settings } from "lucide-react"
 
@@ -21,6 +22,14 @@ function PageLayout({ children }) {
         const name = localStorage.getItem("user") || "User"
         setUserRole(role)
         setUserName(name)
+
+        // Fetch avatar color from DB on mount
+        getAvatarColor().then((res) => {
+            if (res.success) {
+                setAvatarColor(res.data.color)
+                localStorage.setItem("avatarColor", res.data.color)
+            }
+        })
 
         const handleColorChange = (e) => setAvatarColor(e.detail.color)
         window.addEventListener("avatarColorChanged", handleColorChange)
