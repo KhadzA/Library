@@ -31,6 +31,7 @@ function PageLayout({ children }) {
             }
         })
 
+
         const handleColorChange = (e) => setAvatarColor(e.detail.color)
         window.addEventListener("avatarColorChanged", handleColorChange)
         return () => window.removeEventListener("avatarColorChanged", handleColorChange)
