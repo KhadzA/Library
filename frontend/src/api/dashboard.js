@@ -1,10 +1,9 @@
+import axios from "axios";
 
-import axios from 'axios';
-
-const API_BASE = 'http://localhost:3000/api/dashboard';
+const API_BASE = `${import.meta.env.VITE_API_URL}/api/dashboard`;
 
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   return {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -12,13 +11,15 @@ const getAuthHeaders = () => {
   };
 };
 
-// Get books added per month (analytics)
 export const booksPerMonth = async () => {
   try {
-    const res = await axios.get(`${API_BASE}/analytics/books-per-month`, getAuthHeaders());
+    const res = await axios.get(
+      `${API_BASE}/analytics/books-per-month`,
+      getAuthHeaders(),
+    );
     return { success: true, data: res.data };
   } catch (err) {
-    console.error('Failed to fetch books per month:', err);
+    console.error("Failed to fetch books per month:", err);
     return { success: false, error: err };
   }
 };
@@ -28,18 +29,20 @@ export const userStats = async () => {
     const res = await axios.get(`${API_BASE}/stats/users`, getAuthHeaders());
     return { success: true, data: res.data };
   } catch (err) {
-    console.error('Failed to fetch user stats:', err);
+    console.error("Failed to fetch user stats:", err);
     return { success: false, error: err };
   }
 };
 
-// Get the top user with the most reading time
 export const topReader = async () => {
   try {
-    const res = await axios.get(`${API_BASE}/stats/top-reader`, getAuthHeaders());
+    const res = await axios.get(
+      `${API_BASE}/stats/top-reader`,
+      getAuthHeaders(),
+    );
     return { success: true, data: res.data };
   } catch (err) {
-    console.error('Failed to fetch top reader:', err);
+    console.error("Failed to fetch top reader:", err);
     return { success: false, error: err };
   }
 };
@@ -49,7 +52,7 @@ export const bookStats = async () => {
     const res = await axios.get(`${API_BASE}/stats/books`, getAuthHeaders());
     return { success: true, data: res.data };
   } catch (err) {
-    console.error('Failed to fetch book stats:', err);
+    console.error("Failed to fetch book stats:", err);
     return { success: false, error: err };
   }
 };
@@ -59,18 +62,20 @@ export const readingStats = async () => {
     const res = await axios.get(`${API_BASE}/stats/reading`, getAuthHeaders());
     return { success: true, data: res.data };
   } catch (err) {
-    console.error('Failed to fetch reading stats:', err);
+    console.error("Failed to fetch reading stats:", err);
     return { success: false, error: err };
   }
 };
 
 export const recentActivity = async () => {
   try {
-    const res = await axios.get(`${API_BASE}/recent-activity`, getAuthHeaders());
+    const res = await axios.get(
+      `${API_BASE}/recent-activity`,
+      getAuthHeaders(),
+    );
     return { success: true, data: res.data };
   } catch (err) {
-    console.error('Failed to fetch recent activity:', err);
+    console.error("Failed to fetch recent activity:", err);
     return { success: false, error: err };
   }
 };
-
