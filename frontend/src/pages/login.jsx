@@ -30,7 +30,6 @@ function Login() {
             const result = await loginUser(identifier, password, rememberMe)
 
             if (result.success) {
-                console.log("Logged in!", result.data)
                 const { token } = result.data
                 const decoded = jwtDecode(token)
                 const role = decoded.role
