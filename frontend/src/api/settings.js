@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:3000/api/settings";
+const BASE_URL = `${import.meta.env.VITE_API_URL}/api/settings`;
 
 const authHeaders = () => ({
   headers: {
@@ -8,7 +8,6 @@ const authHeaders = () => ({
   },
 });
 
-// Get current user info
 export const getProfile = async () => {
   try {
     const res = await axios.get(`${BASE_URL}/profile`, authHeaders());
@@ -18,7 +17,6 @@ export const getProfile = async () => {
   }
 };
 
-// Update account info (name, email, department)
 export const updateProfile = async (name, email, department) => {
   try {
     const res = await axios.put(
@@ -32,7 +30,6 @@ export const updateProfile = async (name, email, department) => {
   }
 };
 
-// Change password
 export const changePassword = async (currentPassword, newPassword) => {
   try {
     const res = await axios.put(
@@ -46,7 +43,6 @@ export const changePassword = async (currentPassword, newPassword) => {
   }
 };
 
-// Get avatar color
 export const getAvatarColor = async () => {
   try {
     const res = await axios.get(`${BASE_URL}/avatar-color`, authHeaders());
@@ -56,7 +52,6 @@ export const getAvatarColor = async () => {
   }
 };
 
-// Update avatar color
 export const updateAvatarColor = async (color) => {
   try {
     const res = await axios.put(
