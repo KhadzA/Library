@@ -3,18 +3,15 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
 
-const JWT_SECRET = "balls"; // Use .env in production
-
 module.exports = (db) => {
-  // Optional: Middleware to protect admin-only routes
   const authenticateAdmin = (req, res, next) => {
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) return res.status(401).json({ message: "No token provided" });
 
     try {
-      const decoded = jwt.verify(token, JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       if (decoded.role !== "admin") {
-        return res.status(403).json({ message: "Only admins can add users" });
+        return res.status(403).json({ message: "Only admins can do this" });
       }
       req.user = decoded;
       next();
@@ -23,52 +20,38 @@ module.exports = (db) => {
     }
   };
 
-  // paginated + searchable user fetch
-  router.get("/all", (req, res) => {
+  // GET all users — paginated + searchable
+  router.get("/all", async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const page = parseInt(req.query.page) || 1;
     const search = req.query.search || "";
     const offset = (page - 1) * limit;
 
-    const baseSql = `
-        SELECT * FROM users
-        WHERE name LIKE ? OR email LIKE ? OR department LIKE ?
-        ORDER BY created_at DESC
-        LIMIT ? OFFSET ?
-    `;
-    const countSql = `
-        SELECT COUNT(*) AS total FROM users
-        WHERE name LIKE ? OR email LIKE ? OR department LIKE ?
-    `;
-    const searchTerm = `%${search}%`;
+    const { data: users, error } = await db
+      .from("users")
+      .select("*")
+      .or(
+        `name.ilike.%${search}%,email.ilike.%${search}%,department.ilike.%${search}%`,
+      )
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
 
-    db.query(
-      baseSql,
-      [searchTerm, searchTerm, searchTerm, limit, offset],
-      (err, users) => {
-        if (err)
-          return res.status(500).json({ message: "DB error", error: err });
+    if (error) return res.status(500).json({ message: "DB error", error });
 
-        db.query(
-          countSql,
-          [searchTerm, searchTerm, searchTerm],
-          (err, countResult) => {
-            if (err)
-              return res.status(500).json({ message: "DB error", error: err });
+    const { count, error: countError } = await db
+      .from("users")
+      .select("*", { count: "exact", head: true })
+      .or(
+        `name.ilike.%${search}%,email.ilike.%${search}%,department.ilike.%${search}%`,
+      );
 
-            res.json({
-              users,
-              total: countResult[0].total,
-              page,
-              limit,
-            });
-          },
-        );
-      },
-    );
+    if (countError)
+      return res.status(500).json({ message: "DB error", error: countError });
+
+    res.json({ users, total: count, page, limit });
   });
 
-  // Add user manually
+  // POST add user manually (admin only)
   router.post("/add", authenticateAdmin, async (req, res) => {
     const { email, name, department, password, role, status } = req.body;
 
@@ -79,41 +62,34 @@ module.exports = (db) => {
     try {
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      const sql = `
-            INSERT INTO users (email, name, department, password, role, status)
-            VALUES (?, ?, ?, ?, ?, ?)
-        `;
-      const values = [
-        email,
-        name,
-        department,
-        hashedPassword,
-        role,
-        status || "inactive", // defaults to 'inactive'
-      ];
+      const { data, error } = await db
+        .from("users")
+        .insert([
+          {
+            email,
+            name,
+            department,
+            password: hashedPassword,
+            role,
+            status: status || "inactive",
+          },
+        ])
+        .select("id")
+        .single();
 
-      db.query(sql, values, (err, result) => {
-        if (err) {
-          console.error("Add user error:", err);
-          return res
-            .status(500)
-            .json({ message: "Failed to add user", error: err });
-        }
+      if (error)
+        return res.status(500).json({ message: "Failed to add user", error });
 
-        res
-          .status(201)
-          .json({
-            message: "User added successfully",
-            userId: result.insertId,
-          });
-      });
+      res
+        .status(201)
+        .json({ message: "User added successfully", userId: data.id });
     } catch (err) {
       res.status(500).json({ message: "Server error", error: err });
     }
   });
 
-  // Edit user info
-  router.put("/:id/edit", (req, res) => {
+  // PUT edit user
+  router.put("/:id/edit", async (req, res) => {
     const { id } = req.params;
     const { email, name, department, password, role, status } = req.body;
 
@@ -123,70 +99,62 @@ module.exports = (db) => {
         .json({ success: false, message: "Missing required fields." });
     }
 
-    const sql = `
-            UPDATE users SET email = ?, name = ?, department = ?, password = ?, role = ?, status = ? WHERE id = ?
-        `;
+    try {
+      const updates = { email, name, department, role, status };
 
-    db.query(
-      sql,
-      [email, name, department, password || "unchanged", role, status, id],
-      (err, result) => {
-        if (err) return res.status(500).json({ success: false, error: err });
-
-        if (result.affectedRows > 0) {
-          return res.json({
-            success: true,
-            message: "User updated successfully",
-          });
-        } else {
-          return res
-            .status(404)
-            .json({ success: false, message: "User not found" });
-        }
-      },
-    );
-  });
-
-  // Delete user
-  router.delete("/:id/delete", (req, res) => {
-    const { id } = req.params;
-
-    const sql = "DELETE FROM users WHERE id = ?";
-    db.query(sql, [id], (err, result) => {
-      if (err) return res.status(500).json({ success: false, error: err });
-
-      if (result.affectedRows > 0) {
-        return res.json({
-          success: true,
-          message: "User deleted successfully",
-        });
-      } else {
-        return res
-          .status(404)
-          .json({ success: false, message: "User not found" });
+      // Only hash and update password if a new one was actually provided
+      if (password && password.trim() !== "") {
+        updates.password = await bcrypt.hash(password, 10);
       }
-    });
+
+      const { error, count } = await db
+        .from("users")
+        .update(updates)
+        .eq("id", id);
+
+      if (error) return res.status(500).json({ success: false, error });
+
+      res.json({ success: true, message: "User updated successfully" });
+    } catch (err) {
+      res
+        .status(500)
+        .json({ success: false, message: "Server error", error: err });
+    }
   });
 
-  router.put("/:id/status", (req, res) => {
+  // DELETE user
+  router.delete("/:id/delete", async (req, res) => {
+    const { error, count } = await db
+      .from("users")
+      .delete({ count: "exact" })
+      .eq("id", id);
+
+    if (error) return res.status(500).json({ success: false, error });
+
+    if (count > 0) {
+      res.json({ success: true, message: "User deleted successfully" });
+    } else {
+      res.status(404).json({ success: false, message: "User not found" });
+    }
+  });
+
+  // PUT toggle user status
+  router.put("/:id/status", async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    const sql = "UPDATE users SET status = ? WHERE id = ?";
-    db.query(sql, [status, id], (err, result) => {
-      if (err) return res.status(500).send(err);
+    const { error, count } = await db
+      .from("users")
+      .update({ status })
+      .eq("id", id);
 
-      if (result.affectedRows > 0) {
-        // Optional: if you're using sockets for user updates
-        if (req.io) {
-          req.io.emit("userStatusUpdated", { userId: id, status });
-        }
+    if (error) return res.status(500).json({ success: false, error });
 
-        res.json({ success: true });
-      } else {
-        res.status(404).json({ success: false, message: "User not found" });
-      }
-    });
+    if (count > 0) {
+      res.json({ success: true });
+    } else {
+      res.status(404).json({ success: false, message: "User not found" });
+    }
   });
 
   return router;
