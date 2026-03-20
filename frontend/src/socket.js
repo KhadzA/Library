@@ -1,12 +1,11 @@
-// socket.js
-import { io } from 'socket.io-client';
+import { io } from "socket.io-client";
 
-const socket = io('http://localhost:3000', {
+const socket = io(import.meta.env.VITE_API_URL, {
   autoConnect: false,
 });
 
 export function connectSocket() {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   if (token) {
     socket.auth = { token };
     socket.connect();

@@ -1,9 +1,7 @@
 const express = require("express");
 const http = require("http");
-const socketIo = require("socket.io");
-const cors = require("cors");
-const mysql = require("mysql2");
 const jwt = require("jsonwebtoken");
+const cors = require("cors");
 
 // Import routes
 const registerRoutes = require("./routes/auth/register");
@@ -15,10 +13,15 @@ const readRoutes = require("./routes/books/read");
 const userRoutes = require("./routes/users/user");
 const settingsRoutes = require("./routes/settings/setting");
 
+const db = require("./db"); // Supabase client
+
 const app = express();
 const server = http.createServer(app);
 
-const allowedOrigins = ["http://localhost:5173"];
+const allowedOrigins = [
+  "http://localhost:5173", // local dev
+  process.env.FRONTEND_URL, // your Vercel URL e.g. https://your-app.vercel.app
+];
 
 const io = require("socket.io")(server, {
   cors: {
@@ -27,26 +30,11 @@ const io = require("socket.io")(server, {
   },
 });
 
-const JWT_SECRET = "balls"; // In production, put this in .env
-
-app.use(cors());
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
-// DB connection
-const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "library",
-});
-
-db.connect((err) => {
-  if (err) throw err;
-  console.log("Connected to MySQL DB");
-});
-
 // Use routes
-app.use("/api/login", loginRoutes(db)); // <-- pass db connection
+app.use("/api/login", loginRoutes(db));
 app.use("/api/user", statusRoutes(db));
 app.use("/api/register", registerRoutes(db));
 app.use("/api/dashboard", dashboardRoutes(db));
@@ -54,24 +42,22 @@ app.use("/api/books", booksRoutes(db, io));
 app.use("/api/books", readRoutes(db));
 app.use("/api/users", userRoutes(db));
 app.use("/api/settings", settingsRoutes(db));
-app.use("/covers", express.static("uploads/covers"));
-app.use("/contents", express.static("uploads/contents"));
 
-// WebSocket
+// WebSocket auth middleware
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
   if (!token) return next(new Error("Authentication error"));
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     socket.user = decoded;
 
-    // Calculate remaining time and emit expiration
+    // Emit token expiration to client
     const expiresIn = decoded.exp * 1000 - Date.now();
     if (expiresIn > 0) {
       setTimeout(() => {
         socket.emit("tokenExpired");
-        socket.disconnect(); // optional
+        socket.disconnect();
       }, expiresIn);
     }
 
@@ -81,4 +67,9 @@ io.use((socket, next) => {
   }
 });
 
-server.listen(3000, () => console.log("Server running on port 3000"));
+io.on("connection", (socket) => {
+  console.log("Client connected:", socket.id);
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

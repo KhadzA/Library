@@ -1,60 +1,54 @@
-import { useEffect, useState } from 'react';
-import { viewBook } from '../api/book';
-import socket, { connectSocket } from '../socket';
+import { useEffect, useState } from "react";
+import { viewBook } from "../api/book";
+import socket, { connectSocket } from "../socket";
 
 export const useBookConnection = () => {
-    const [books, setBooks] = useState([]);
+  const [books, setBooks] = useState([]);
 
-    useEffect(() => {
-        connectSocket(); // ensure socket is connected
+  useEffect(() => {
+    connectSocket();
 
-        const fetchBooks = async () => {
-            const res = await viewBook();
-            if (res?.success) {
-                setBooks(res.data);
-            } else {
-                console.error('Failed to fetch books');
-            }
-        };
+    const fetchBooks = async () => {
+      const res = await viewBook();
+      if (res?.success) {
+        setBooks(res.data.books); // .books because the API returns { books, total, page, limit }
+      } else {
+        console.error("Failed to fetch books");
+      }
+    };
 
-        fetchBooks(); // initial fetch
+    fetchBooks();
 
-        // 🔁 Real-time event listeners
-        socket.on('bookAdded', (newBook) => {
-            setBooks((prevBooks) => [...prevBooks, newBook]);
-        });
+    socket.on("bookAdded", (newBook) => {
+      setBooks((prev) => [...prev, newBook]);
+    });
 
-        socket.on('bookUpdated', (updatedBook) => {
-            setBooks((prevBooks) =>
-                prevBooks.map((book) =>
-                    book.id === updatedBook.id ? updatedBook : book
-                )
-            );
-        });
+    socket.on("bookUpdated", (updatedBook) => {
+      setBooks((prev) =>
+        prev.map((book) => (book.id === updatedBook.id ? updatedBook : book)),
+      );
+    });
 
-        socket.on('bookDeleted', (bookId) => {
-            setBooks((prevBooks) =>
-                prevBooks.filter((book) => book.id !== bookId)
-            );
-        });
+    socket.on("bookDeleted", ({ id }) => {
+      // id comes as { id } object from io.emit("bookDeleted", { id })
+      setBooks((prev) => prev.filter((book) => book.id !== parseInt(id)));
+    });
 
-        // 👇 Add this for availability toggle
-        socket.on('bookAvailabilityUpdated', ({ bookId, availability }) => {
-            setBooks((prevBooks) =>
-                prevBooks.map((book) =>
-                    book.id === parseInt(bookId) ? { ...book, availability } : book
-                )
-            );
-        });
+    socket.on("bookAvailabilityUpdated", ({ bookId, availability }) => {
+      setBooks((prev) =>
+        prev.map((book) =>
+          book.id === parseInt(bookId) ? { ...book, availability } : book,
+        ),
+      );
+    });
 
-        // 🧼 Cleanup listeners
-        return () => {
-            socket.off('bookAdded');
-            socket.off('bookUpdated');
-            socket.off('bookDeleted');
-            socket.off('bookAvailabilityUpdated'); // cleanup added listener
-        };
-    }, []);
+    return () => {
+      socket.off("bookAdded");
+      socket.off("bookUpdated");
+      socket.off("bookDeleted");
+      socket.off("bookAvailabilityUpdated");
+    };
+  }, []);
 
-    return books;
+  return books;
 };
