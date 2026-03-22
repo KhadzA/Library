@@ -54,7 +54,7 @@ function Home() {
                 <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
                     <div>
                         <h1 className="text-5xl font-bold leading-tight tracking-tight mb-6">
-                            AlimBrary <span className="text-sky-500">😢</span>
+                            AlimBrary <span className="text-sky-500"></span>
                         </h1>
                         <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed mb-8 max-w-md">
                             Streamline your library operations. From book management to user management,
@@ -74,7 +74,8 @@ function Home() {
                         </div>
                     </div>
                     <div className="flex justify-center">
-                        <img src="../../AintNoWay.png" alt="hero" className="opacity-60 max-w-sm w-full" />
+                        {/* Replace this image with the books page. alter it with light and dark mode depends on the theme */}
+                        <img src="../../libraryBooks-light.png" alt="hero" className="opacity-60 max-w-sm w-full" />
                     </div>
                 </div>
             </section>
@@ -123,7 +124,8 @@ function Home() {
                         </div>
                     </div>
                     <div className="flex justify-center">
-                        <img src="../../YOSPEED.png" alt="benefits" className="opacity-60 max-w-sm w-full" />
+                        {/* Replace this image with the dashboard page. alter it with light and dark mode depends on the theme */}
+                        <img src="../../libraryDashboard-light.png" alt="benefits" className="opacity-60 max-w-sm w-full" />
                     </div>
                 </div>
             </section>
