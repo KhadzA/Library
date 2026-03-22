@@ -58,7 +58,8 @@
 .landing-container {
   min-height: 100vh;
   background-color: var(--bg-primary);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
   transition: background-color 0.3s ease;
 }
 
@@ -364,7 +365,11 @@
 
 /* CTA Section */
 .cta-section {
-  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--accent-primary) 0%,
+    var(--accent-secondary) 100%
+  );
   color: white;
 }
 

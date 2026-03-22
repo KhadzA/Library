@@ -59,15 +59,13 @@ function Signup() {
             const result = await registerUser(email, username, department, password)
 
             if (result.success) {
-                console.log("Registration successful!", result.data)
                 toast.success("Registration successful! Redirecting to login...")
-
-                // Delay navigation to show success message
                 setTimeout(() => {
                     navigate("/auth/login?registration_success=true")
                 }, 1500)
             } else {
-                toast.error("Registration failed. Please try again.")
+                // Use the message from the backend instead of a hardcoded one
+                toast.error(result.message || "Registration failed. Please try again.")
                 setIsLoading(false)
             }
         } catch (error) {

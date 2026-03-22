@@ -68,8 +68,9 @@ export const registerUser = async (email, username, department, password) => {
     });
     return { success: true, data: res.data };
   } catch (err) {
-    console.error("Registration failed", err);
-    return { success: false, error: err };
+    // Pull the actual message from the backend response
+    const message = err.response?.data?.message || "Registration failed";
+    return { success: false, error: err, message };
   }
 };
 
