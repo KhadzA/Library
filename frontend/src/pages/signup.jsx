@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { registerUser } from "../api/auth"
 import "./signup.css"
@@ -24,6 +24,14 @@ function Signup() {
     const passwordValid = password.length >= 6
     const passwordsMatch = password === confirmPassword && confirmPassword.length > 0
 
+    useEffect(() => {
+        const saved = localStorage.getItem("theme") || "dark"
+        document.documentElement.setAttribute("data-theme", saved)
+        // Add this line so Tailwind dark: variants work
+        if (saved === "dark") document.documentElement.classList.add("dark")
+        else document.documentElement.classList.remove("dark")
+    }, [])
+
     const handleSignup = async () => {
         if (!emailValid) { toast.error("Invalid email", "Enter a valid email address."); return }
         if (!passwordValid) { toast.error("Weak password", "Password must be at least 6 characters."); return }
@@ -42,7 +50,7 @@ function Signup() {
                 toast.error("Registration failed", result.message || "Please try again.")
                 setIsLoading(false)
             }
-        } catch (err) {
+        } catch {
             toast.error("Something went wrong", "Please try again.")
             setIsLoading(false)
         }

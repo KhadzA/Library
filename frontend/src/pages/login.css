@@ -1,8 +1,47 @@
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500&display=swap");
-
 * {
   box-sizing: border-box;
   margin: 0;
+}
+
+/* Dark mode (default) */
+:root,
+[data-theme="dark"] {
+  --page-bg: #0b1120;
+  --brand-bg: linear-gradient(160deg, #0f1e3a 0%, #0b1120 60%, #0d1a2e 100%);
+  --brand-border: rgba(255, 255, 255, 0.06);
+  --input-bg: #111827;
+  --input-border: #1f2d45;
+  --input-border-focus-shadow: rgba(99, 179, 237, 0.1);
+  --text-heading: #f0f4f8;
+  --text-body: #718096;
+  --text-muted: #4a5568;
+  --text-input: #e2e8f0;
+  --text-placeholder: #374151;
+  --btn-disabled-bg: #1f2d45;
+  --btn-disabled-color: #4a5568;
+  --success-banner-bg: rgba(72, 187, 120, 0.1);
+  --success-banner-border: rgba(72, 187, 120, 0.25);
+  --success-banner-text: #68d391;
+}
+
+/* Light mode */
+[data-theme="light"] {
+  --page-bg: #f8fafc;
+  --brand-bg: linear-gradient(160deg, #1e3a5f 0%, #1a3050 60%, #162840 100%);
+  --brand-border: rgba(0, 0, 0, 0.08);
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --input-border-focus-shadow: rgba(59, 130, 246, 0.1);
+  --text-heading: #0f172a;
+  --text-body: #475569;
+  --text-muted: #94a3b8;
+  --text-input: #111827;
+  --text-placeholder: #9ca3af;
+  --btn-disabled-bg: #e2e8f0;
+  --btn-disabled-color: #94a3b8;
+  --success-banner-bg: #f0fdf4;
+  --success-banner-border: #bbf7d0;
+  --success-banner-text: #166534;
 }
 
 .login-page {

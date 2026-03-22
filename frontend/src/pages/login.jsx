@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { loginUser, activeStatus } from "../api/auth"
 import { jwtDecode } from "jwt-decode"
@@ -21,6 +21,14 @@ function Login() {
     const [rememberMe, setRemember] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
+
+    useEffect(() => {
+        const saved = localStorage.getItem("theme") || "dark"
+        document.documentElement.setAttribute("data-theme", saved)
+        // Add this line so Tailwind dark: variants work
+        if (saved === "dark") document.documentElement.classList.add("dark")
+        else document.documentElement.classList.remove("dark")
+    }, [])
 
     const handleLogin = async () => {
         setIsLoading(true)
@@ -49,7 +57,7 @@ function Login() {
                 toast.error("Login failed", msg)
                 setIsLoading(false)
             }
-        } catch (err) {
+        } catch {
             toast.error("Something went wrong", "Please try again.")
             setIsLoading(false)
         }
