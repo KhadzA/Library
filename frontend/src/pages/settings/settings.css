@@ -239,7 +239,7 @@
 }
 
 .section-title {
-  font-family: "Syne", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -503,7 +503,7 @@
   align-items: center;
   justify-content: center;
   color: white;
-  font-family: "Syne", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 1.75rem;
   font-weight: 700;
   flex-shrink: 0;
@@ -666,7 +666,7 @@
 }
 
 .header-title h1 {
-  font-family: "Syne", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-size: 22px;
   font-weight: 700;
   color: var(--text-primary);
