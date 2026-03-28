@@ -365,7 +365,10 @@
   font-size: 14px;
   background: var(--bg-secondary);
   color: var(--text-primary);
-  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  transition:
+    background-color 0.3s,
+    color 0.3s,
+    border-color 0.3s;
 }
 
 .view-toggle {
@@ -381,7 +384,9 @@
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
 }
 
 .view-toggle button:hover {
@@ -400,7 +405,10 @@
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-primary);
   padding: 24px;
-  transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+  transition:
+    background-color 0.3s,
+    border-color 0.3s,
+    box-shadow 0.3s;
 }
 
 .collection-header {
@@ -685,7 +693,9 @@
   background: var(--bg-tertiary);
   padding: 4px 8px;
   border-radius: 4px;
-  transition: background-color 0.3s, color 0.3s;
+  transition:
+    background-color 0.3s,
+    color 0.3s;
 }
 
 .book-description {
