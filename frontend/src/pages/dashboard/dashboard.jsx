@@ -129,6 +129,7 @@ function BooksPerMonthChart({ data, chartRef }) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                resizeDelay: 0,
                 plugins: {
                     legend: { display: false },
                     tooltip: {
@@ -293,8 +294,7 @@ function Dashboard() {
     // ─── Main ────────────────────────────────────────────────────────────────────
     return (
         <AuthGuard allowedRoles={["admin", "librarian"]}>
-            <div className="p-4 min-[480px]:p-5 md:p-8 bg-slate-50 dark:bg-slate-900 min-h-[calc(100vh-64px)] transition-colors duration-300">
-
+            <div className="p-4 min-[480px]:p-5 md:p-8 bg-slate-50 dark:bg-slate-900 min-h-[calc(100vh-64px)] transition-colors duration-300 overflow-x-hidden">
                 {/* ── Header ──────────────────────────────────────────────────── */}
                 <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 md:p-8 mb-8 shadow-sm border border-slate-200 dark:border-slate-700 transition-all duration-300">
                     <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
@@ -471,10 +471,10 @@ function Dashboard() {
                 </div>
 
                 {/* ── Main Content Grid ────────────────────────────────────────── */}
-                <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-6">
+                <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-6 min-w-0">
 
                     {/* Charts */}
-                    <div className="flex flex-col gap-5 md:gap-5">
+                    <div className="flex flex-col gap-5 md:gap-5 min-w-0">
 
                         {/* Books Per Month */}
                         <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 md:p-6 shadow-md border border-slate-200 dark:border-slate-700 transition-all duration-300 animate-[fadeInUp_0.6s_ease-out]">
@@ -491,7 +491,7 @@ function Dashboard() {
                                     </div>
                                 </div>
                             </div>
-                            <div className="h-75 relative">
+                            <div className="h-75 relative overflow-hidden">
                                 <canvas ref={chartRef} height="300" />
                                 <BooksPerMonthChart data={booksAnalytics} chartRef={chartRef} />
                             </div>
