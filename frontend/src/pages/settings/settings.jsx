@@ -161,7 +161,7 @@ function Settings() {
         <AuthGuard allowedRoles={["admin", "librarian", "student"]}>
             {/* Page wrapper */}
             <div className="p-6 max-sm:p-4 min-[480px]:p-5 bg-slate-50 dark:bg-slate-900 min-h-[calc(100vh-64px)] transition-colors duration-300">
-                <div className="max-w-[820px] mx-auto">
+                <div className="max-w-205 mx-auto">
 
                     {/* ── Page Header ──────────────────────────────────────── */}
                     <div className="flex items-center justify-between bg-white dark:bg-slate-800 py-5 px-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-all duration-300">
@@ -200,7 +200,7 @@ function Settings() {
                                 {/* Preview row */}
                                 <div className="flex items-center gap-5 mb-5 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border-[1.5px] border-slate-200 dark:border-slate-700 transition-all duration-300">
                                     <div
-                                        className="w-16 h-16 rounded-full flex items-center justify-center text-white text-[1.75rem] font-bold shrink-0 shadow-[0_2px_10px_rgba(0,0,0,0.15)] transition-colors duration-[250ms]"
+                                        className="w-16 h-16 rounded-full flex items-center justify-center text-white text-[1.75rem] font-bold shrink-0 shadow-[0_2px_10px_rgba(0,0,0,0.15)] transition-colors duration-250"
                                         style={{ backgroundColor: avatarColor }}
                                     >
                                         {name ? name.charAt(0).toUpperCase() : "?"}
@@ -267,7 +267,7 @@ function Settings() {
                                         </p>
                                     </div>
                                     {/* Toggle pill */}
-                                    <div className="flex bg-slate-50 dark:bg-slate-900 border-[1.5px] border-slate-200 dark:border-slate-700 rounded-[10px] p-[3px] gap-[3px] max-sm:w-full transition-all duration-300">
+                                    <div className="flex bg-slate-50 dark:bg-slate-900 border-[1.5px] border-slate-200 dark:border-slate-700 rounded-[10px] p-0.75 gap-0.75 max-sm:w-full transition-all duration-300">
                                         <button
                                             className={[
                                                 "flex items-center gap-1.5 py-[0.45rem] px-3.5 rounded-[7px] text-[0.825rem] font-medium cursor-pointer transition-all duration-200 border-none max-sm:flex-1 max-sm:justify-center",
