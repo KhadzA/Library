@@ -11,7 +11,6 @@ import { Chart as ChartJS, RadialLinearScale, PointElement, LineElement, Filler,
 import Chart from "chart.js/auto"
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend)
-import "./dashboard.css" // keyframes + scrollbar only
 import {
     Users,
     BookOpen,

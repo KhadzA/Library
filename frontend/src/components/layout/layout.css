@@ -44,6 +44,7 @@
   min-height: 100vh;
   background-color: #f8fafc;
   font-family: "DM Sans", sans-serif;
+  min-width: 320px;
 }
 
 .headerLayout {
