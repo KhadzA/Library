@@ -328,7 +328,7 @@ function Books() {
         return matchesSearch && matchesGenre
     })
 
-    // Get unique genres for filter (from current page books)
+    // Gets unique genres for filter (from current page books)
     const uniqueGenres = [...new Set(books.map((book) => book.genre))]
 
     return (
