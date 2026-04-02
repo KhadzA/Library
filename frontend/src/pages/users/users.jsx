@@ -29,10 +29,73 @@ import {
     Check,
 } from "lucide-react"
 
+/* ─── Role config ─── */
+const roleOptions = [
+    {
+        value: "admin",
+        label: "Admin",
+        icon: Shield,
+        description: "Full system access",
+        color: "#92400e",
+        bg: "#fef3c7",
+    },
+    {
+        value: "librarian",
+        label: "Librarian",
+        icon: User,
+        description: "Manage books and users",
+        color: "#1e40af",
+        bg: "#dbeafe",
+    },
+    {
+        value: "student",
+        label: "Student",
+        icon: GraduationCap,
+        description: "Borrow and return books",
+        color: "#065f46",
+        bg: "#d1fae5",
+    },
+]
+
+const statusConfig = {
+    active: { label: "Active", icon: UserCheck, cls: "bg-emerald-100 text-emerald-700" },
+    inactive: { label: "Inactive", icon: UserX, cls: "bg-slate-100 text-slate-500 cursor-not-allowed" },
+    suspended: { label: "Suspended", icon: UserMinus, cls: "bg-red-100 text-red-700" },
+}
+
+function getRoleData(role) {
+    return roleOptions.find((r) => r.value === role) || roleOptions[2]
+}
+
+function calcPosition(el, w = 160, h = 160) {
+    const r = el.getBoundingClientRect()
+    const vw = window.innerWidth, vh = window.innerHeight
+    let top = r.bottom + 4
+    let left = r.right - w
+    if (left < 8) left = r.left
+    if (left + w > vw - 8) left = vw - w - 8
+    if (top + h > vh - 8) top = r.top - h - 4
+    if (top < 8) top = r.bottom + 4
+    return { top, left }
+}
+
+function calcRolePosition(el) {
+    const r = el.getBoundingClientRect()
+    const vw = window.innerWidth, vh = window.innerHeight
+    const w = 280, h = 200
+    let top = r.bottom + 4
+    let left = r.left
+    if (left + w > vw - 8) left = r.right - w
+    if (left < 8) left = 8
+    if (top + h > vh - 8) top = r.top - h - 4
+    if (top < 8) top = r.bottom + 4
+    return { top, left }
+}
+
+/* ─── Main component ─── */
 function Users() {
     useSocketConnection()
 
-    // Pagination state
     const [users, setUsers] = useState([])
     const [currentPage, setCurrentPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
@@ -40,52 +103,26 @@ function Users() {
     const [isLoading, setIsLoading] = useState(true)
 
     const [showAddModal, setShowAddModal] = useState(false)
+    const [showEditModal, setShowEditModal] = useState(false)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
+    const [selectedUser, setSelectedUser] = useState(null)
+
     const [searchTerm, setSearchTerm] = useState("")
     const [filterRole, setFilterRole] = useState("")
     const [filterStatus, setFilterStatus] = useState("")
+
     const [openDropDown, setOpenDropDown] = useState(null)
     const [dropDownPosition, setDropDownPosition] = useState({ top: 0, left: 0 })
     const [openRoleDropDown, setOpenRoleDropDown] = useState(null)
     const [roleDropDownPosition, setRoleDropDownPosition] = useState({ top: 0, left: 0 })
-    const [selectedUser, setSelectedUser] = useState(null)
-    const [showEditModal, setShowEditModal] = useState(false)
-    const [showDeleteModal, setShowDeleteModal] = useState(false)
 
     const { usersToast, toasts, removeToast } = useUsersToast()
 
-    // Role options with metadata
-    const roleOptions = [
-        {
-            value: "admin",
-            label: "Admin",
-            icon: Shield,
-            description: "Full system access",
-            color: "#92400e",
-            bgColor: "#fef3c7",
-        },
-        {
-            value: "librarian",
-            label: "Librarian",
-            icon: User,
-            description: "Manage books and users",
-            color: "#1e40af",
-            bgColor: "#dbeafe",
-        },
-        {
-            value: "student",
-            label: "Student",
-            icon: GraduationCap,
-            description: "Borrow and return books",
-            color: "#065f46",
-            bgColor: "#d1fae5",
-        },
-    ]
-
-    // Fetch users with pagination
-    const fetchUsers = async (page = 1, searchTerm = "") => {
+    /* ─── Fetch ─── */
+    const fetchUsers = async (page = 1, search = "") => {
         setIsLoading(true)
         try {
-            const res = await viewUsers(page, 10, searchTerm)
+            const res = await viewUsers(page, 10, search)
             if (res.success) {
                 setUsers(res.users || [])
                 setTotalUsers(res.total || 0)
@@ -94,340 +131,156 @@ function Users() {
             } else {
                 usersToast.error("Error", "Failed to fetch users")
             }
-        } catch (error) {
-            console.error("Error fetching users:", error)
+        } catch {
             usersToast.error("Error", "An error occurred while fetching users")
         }
         setIsLoading(false)
     }
 
-    useEffect(() => {
-        fetchUsers(currentPage, searchTerm)
-    }, [searchTerm, currentPage])
+    useEffect(() => { fetchUsers(currentPage, searchTerm) }, [searchTerm, currentPage])
 
+    /* ─── Close on scroll / resize ─── */
+    useEffect(() => {
+        const close = () => { setOpenDropDown(null); setOpenRoleDropDown(null) }
+        window.addEventListener("scroll", close, true)
+        window.addEventListener("resize", close)
+        return () => { window.removeEventListener("scroll", close, true); window.removeEventListener("resize", close) }
+    }, [openDropDown, openRoleDropDown])
+
+    /* ─── Handlers ─── */
     const handleAddSuccess = (newUser) => {
-        // Refresh current page to show new user
         fetchUsers(currentPage)
         usersToast.success("User Added", `${newUser.name} has been added successfully`)
     }
 
     const handleEditSuccess = (updatedUser) => {
-        setUsers((prev) => prev.map((user) => (user.id === updatedUser.id ? updatedUser : user)))
+        setUsers((prev) => prev.map((u) => (u.id === updatedUser.id ? updatedUser : u)))
         setSelectedUser(null)
     }
 
-    const handleDeleteSuccess = (deletedUserId) => {
-        // Remove user from current page and update total count
+    const handleDeleteSuccess = (deletedId) => {
         setUsers((prev) => {
-            const filteredUsers = prev.filter((user) => user.id !== deletedUserId)
-
-            // If current page becomes empty and we're not on page 1, go to previous page
-            if (filteredUsers.length === 0 && currentPage > 1) {
-                fetchUsers(currentPage - 1)
-            } else if (filteredUsers.length < prev.length) {
-                // Update total count
-                setTotalUsers((prevTotal) => prevTotal - 1)
-                // Recalculate total pages
-                setTotalPages(Math.ceil((totalUsers - 1) / 10))
-            }
-
-            return filteredUsers
+            const next = prev.filter((u) => u.id !== deletedId)
+            if (next.length === 0 && currentPage > 1) fetchUsers(currentPage - 1)
+            else { setTotalUsers((t) => t - 1); setTotalPages(Math.ceil((totalUsers - 1) / 10)) }
+            return next
         })
         setSelectedUser(null)
     }
 
     const handleToggleStatus = async (userId, currentStatus) => {
+        if (currentStatus === "inactive") return
         try {
             const res = await toggleStatus(userId, currentStatus)
             if (res.success) {
-                setUsers((prev) => prev.map((user) => (user.id === userId ? { ...user, status: res.newStatus } : user)))
+                setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, status: res.newStatus } : u)))
                 usersToast.success("Status Updated", `User status changed to ${res.newStatus}`)
             } else {
                 usersToast.error("Update Failed", "Failed to update user status")
             }
-        } catch (error) {
-            console.error("Error toggling status:", error)
+        } catch {
             usersToast.error("Error", "An error occurred while updating status")
         }
     }
 
-    // Handler for changing user role
     const handleRoleChange = async (userId, newRole) => {
         try {
-            // Find the user to update
             const userToUpdate = users.find((u) => u.id === userId)
             if (!userToUpdate) return
-
-            // Prepare data for backend
-            const updatedUser = { ...userToUpdate, role: newRole }
-            // You may need to send all required fields for editUser
-            const res = await import("../../api/users").then((api) => api.editUser(updatedUser))
+            const res = await import("../../api/users").then((api) => api.editUser({ ...userToUpdate, role: newRole }))
             if (res.success) {
-                setUsers((prev) => prev.map((user) => (user.id === userId ? { ...user, role: newRole } : user)))
-                const roleLabel = roleOptions.find((r) => r.value === newRole)?.label || newRole
-                usersToast.success("Role Updated", `User role changed to ${roleLabel}`)
+                setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)))
+                usersToast.success("Role Updated", `User role changed to ${roleOptions.find((r) => r.value === newRole)?.label}`)
                 setOpenRoleDropDown(null)
             } else {
                 usersToast.error("Update Failed", "Failed to update user role")
             }
-        } catch (error) {
-            console.error("Error updating role:", error)
+        } catch {
             usersToast.error("Error", "An error occurred while updating role")
         }
     }
 
-    // Improved position calculation function
-    const calculateDropDownPosition = (buttonElement, dropDownWidth = 160, dropDownHeight = 150) => {
-        const buttonRect = buttonElement.getBoundingClientRect()
-        const viewportWidth = window.innerWidth
-        const viewportHeight = window.innerHeight
-
-        let top = buttonRect.bottom + 4
-        let left = buttonRect.right - dropDownWidth
-
-        // Adjust if dropdown would go off the right edge
-        if (left < 8) {
-            left = buttonRect.left
-        }
-
-        // Adjust if dropdown would go off the left edge
-        if (left + dropDownWidth > viewportWidth - 8) {
-            left = viewportWidth - dropDownWidth - 8
-        }
-
-        // Adjust if dropdown would go off the bottom edge
-        if (top + dropDownHeight > viewportHeight - 8) {
-            top = buttonRect.top - dropDownHeight - 4
-        }
-
-        // Ensure dropdown doesn't go above viewport
-        if (top < 8) {
-            top = buttonRect.bottom + 4
-        }
-
-        return { top, left }
-    }
-
-    const calculateRoleDropDownPosition = (buttonElement) => {
-        const buttonRect = buttonElement.getBoundingClientRect()
-        const viewportWidth = window.innerWidth
-        const viewportHeight = window.innerHeight
-        const dropDownWidth = 280
-        const dropDownHeight = 200
-
-        let top = buttonRect.bottom + 4
-        let left = buttonRect.left
-
-        // Adjust if dropdown would go off the right edge
-        if (left + dropDownWidth > viewportWidth - 8) {
-            left = buttonRect.right - dropDownWidth
-        }
-
-        // Adjust if dropdown would go off the left edge
-        if (left < 8) {
-            left = 8
-        }
-
-        // Adjust if dropdown would go off the bottom edge
-        if (top + dropDownHeight > viewportHeight - 8) {
-            top = buttonRect.top - dropDownHeight - 4
-        }
-
-        // Ensure dropdown doesn't go above viewport
-        if (top < 8) {
-            top = buttonRect.bottom + 4
-        }
-
-        return { top, left }
-    }
-
-    const handleDropDownToggle = (userId, event) => {
-        if (openDropDown === userId) {
-            setOpenDropDown(null)
-            return
-        }
-
-        const position = calculateDropDownPosition(event.currentTarget)
-        setDropDownPosition(position)
+    const handleDropDownToggle = (userId, e) => {
+        if (openDropDown === userId) { setOpenDropDown(null); return }
+        setDropDownPosition(calcPosition(e.currentTarget))
         setOpenDropDown(userId)
     }
 
-    const handleRoleDropDownToggle = (userId, event) => {
-        if (openRoleDropDown === userId) {
-            setOpenRoleDropDown(null)
-            return
-        }
-
-        const position = calculateRoleDropDownPosition(event.currentTarget)
-        setRoleDropDownPosition(position)
+    const handleRoleDropDownToggle = (userId, e) => {
+        if (openRoleDropDown === userId) { setOpenRoleDropDown(null); return }
+        setRoleDropDownPosition(calcRolePosition(e.currentTarget))
         setOpenRoleDropDown(userId)
     }
 
-    const handleEditUser = (user) => {
-        setSelectedUser(user)
-        setShowEditModal(true)
-        setOpenDropDown(null)
-    }
-
-    const handleDeleteUser = (user) => {
-        setSelectedUser(user)
-        setShowDeleteModal(true)
-        setOpenDropDown(null)
-    }
-
-    const handleClickOutside = (event) => {
-        // Check if click is outside dropDown
-        if (
-            !event.target.closest(".actions-menu") &&
-            !event.target.closest(".dropDown-portal") &&
-            !event.target.closest(".role-dropDown-trigger") &&
-            !event.target.closest(".role-dropDown-portal")
-        ) {
+    const handleClickOutside = (e) => {
+        if (!e.target.closest(".actions-menu") &&
+            !e.target.closest(".dropdown-portal") &&
+            !e.target.closest(".role-badge-btn") &&
+            !e.target.closest(".role-dropdown-portal")) {
             setOpenDropDown(null)
             setOpenRoleDropDown(null)
         }
     }
 
-    // Close dropdowns on scroll and resize
-    useEffect(() => {
-        const handleScrollOrResize = () => {
-            if (openDropDown || openRoleDropDown) {
-                setOpenDropDown(null)
-                setOpenRoleDropDown(null)
-            }
-        }
+    /* ─── Pagination ─── */
+    const goToPage = (p) => { if (p >= 1 && p <= totalPages && p !== currentPage) fetchUsers(p) }
 
-        window.addEventListener("scroll", handleScrollOrResize, true)
-        window.addEventListener("resize", handleScrollOrResize)
-
-        return () => {
-            window.removeEventListener("scroll", handleScrollOrResize, true)
-            window.removeEventListener("resize", handleScrollOrResize)
-        }
-    }, [openDropDown, openRoleDropDown])
-
-    // Pagination handlers
-    const handlePageChange = (page) => {
-        if (page >= 1 && page <= totalPages && page !== currentPage) {
-            fetchUsers(page)
-        }
-    }
-
-    const handlePreviousPage = () => {
-        if (currentPage > 1) {
-            handlePageChange(currentPage - 1)
-        }
-    }
-
-    const handleNextPage = () => {
-        if (currentPage < totalPages) {
-            handlePageChange(currentPage + 1)
-        }
-    }
-
-    // Generate page numbers for pagination
-    const generatePageNumbers = () => {
+    const pageNumbers = () => {
         const pages = []
-        const maxVisiblePages = 5
-
-        if (totalPages <= maxVisiblePages) {
-            for (let i = 1; i <= totalPages; i++) {
-                pages.push(i)
-            }
+        if (totalPages <= 5) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i)
+        } else if (currentPage <= 3) {
+            pages.push(1, 2, 3, 4, "...", totalPages)
+        } else if (currentPage >= totalPages - 2) {
+            pages.push(1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages)
         } else {
-            if (currentPage <= 3) {
-                for (let i = 1; i <= 4; i++) {
-                    pages.push(i)
-                }
-                pages.push("...")
-                pages.push(totalPages)
-            } else if (currentPage >= totalPages - 2) {
-                pages.push(1)
-                pages.push("...")
-                for (let i = totalPages - 3; i <= totalPages; i++) {
-                    pages.push(i)
-                }
-            } else {
-                pages.push(1)
-                pages.push("...")
-                for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-                    pages.push(i)
-                }
-                pages.push("...")
-                pages.push(totalPages)
-            }
+            pages.push(1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages)
         }
-
         return pages
     }
 
-    // Filter users based on search and filters (client-side for current page)
-    const filteredUsers = users.filter((user) => {
-        const matchesSearch =
-            searchTerm === "" ||
-            user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.department.toLowerCase().includes(searchTerm.toLowerCase())
-
-        const matchesRole = !filterRole || user.role === filterRole
-        const matchesStatus = !filterStatus || user.status === filterStatus
-
-        return matchesSearch && matchesRole && matchesStatus
+    /* ─── Filtered list ─── */
+    const filtered = users.filter((u) => {
+        const s = searchTerm.toLowerCase()
+        const matchSearch = !s || u.name.toLowerCase().includes(s) ||
+            u.email.toLowerCase().includes(s) || u.department.toLowerCase().includes(s)
+        return matchSearch && (!filterRole || u.role === filterRole) && (!filterStatus || u.status === filterStatus)
     })
 
-    // eslint-disable-next-line no-unused-vars
-    const getRoleIcon = (role) => {
-        const roleOption = roleOptions.find((r) => r.value === role)
-        if (roleOption) {
-            const IconComponent = roleOption.icon
-            return <IconComponent size={16} />
-        }
-        return <User size={16} />
-    }
-
-    const getRoleData = (role) => {
-        return roleOptions.find((r) => r.value === role) || roleOptions[2] // Default to student
-    }
-
-    const getStatusIcon = (status) => {
-        switch (status) {
-            case "active":
-                return <UserCheck size={16} />
-            case "inactive":
-                return <UserX size={16} />
-            case "suspended":
-                return <UserMinus size={16} />
-            default:
-                return <User size={16} />
-        }
-    }
-
+    /* ─── Render ─── */
     return (
-        <div className="users-page" onClick={handleClickOutside}>
-            {/* Page Header */}
-            <div className="page-header">
-                <div className="header-title">
-                    <UsersIcon size={28} className="title-icon" />
+        <div
+            className="users-page min-h-screen p-6 bg-slate-50 font-sans"
+            onClick={handleClickOutside}
+        >
+
+            {/* ── Page Header ── */}
+            <div className="card bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                        <UsersIcon size={24} />
+                    </div>
                     <div>
-                        <h1>Users Management</h1>
-                        <p>Manage library users and permissions</p>
+                        <h1 className="text-2xl font-bold text-primary-dark text-slate-800 m-0">Users Management</h1>
+                        <p className="text-sm text-secondary-dark text-slate-500 mt-0.5 m-0">Manage library users and permissions</p>
                     </div>
                 </div>
-                <button className="add-user-btn" onClick={() => setShowAddModal(true)}>
-                    <Plus size={20} />
+                <button
+                    onClick={() => setShowAddModal(true)}
+                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-200 shadow-sm hover:-translate-y-px"
+                >
+                    <Plus size={18} />
                     Add New User
                 </button>
             </div>
 
-            {/* Add User Modal */}
+            {/* ── Modals ── */}
             <AddUserModal
                 isOpen={showAddModal}
                 onClose={() => setShowAddModal(false)}
                 onSuccess={handleAddSuccess}
                 usersToast={usersToast}
             />
-
-            {/* Edit User Modal */}
             <EditUserModal
                 isOpen={showEditModal}
                 onClose={() => setShowEditModal(false)}
@@ -435,8 +288,6 @@ function Users() {
                 onSuccess={handleEditSuccess}
                 usersToast={usersToast}
             />
-
-            {/* Delete User Modal */}
             <DeleteUserModal
                 isOpen={showDeleteModal}
                 onClose={() => setShowDeleteModal(false)}
@@ -445,130 +296,160 @@ function Users() {
                 usersToast={usersToast}
             />
 
-            {/* Search and Filters */}
-            <div className="search-section">
-                <div className="search-bar">
-                    <Search size={20} />
+            {/* ── Search & Filters ── */}
+            <div className="flex flex-wrap gap-3 mb-6 items-center">
+                {/* Search */}
+                <div className="flex-1 min-w-[220px] relative flex items-center">
+                    <Search size={16} className="absolute left-3 text-slate-400 pointer-events-none" />
                     <input
                         type="text"
-                        placeholder="Search users by name, email, or department..."
+                        placeholder="Search by name, email, or department…"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
+                        className="input-dark w-full pl-9 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                     />
                 </div>
-                <div className="filters">
-                    <div className="filter-dropDown">
-                        <Filter size={16} />
-                        <select value={filterRole} onChange={(e) => setFilterRole(e.target.value)}>
-                            <option value="">All Roles</option>
-                            <option value="admin">Admin</option>
-                            <option value="librarian">Librarian</option>
-                            <option value="student">Student</option>
-                        </select>
-                    </div>
-                    <div className="filter-dropDown">
-                        <Filter size={16} />
-                        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-                            <option value="">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                            <option value="suspended">Suspended</option>
-                        </select>
-                    </div>
+
+                {/* Role filter */}
+                <div className="flex items-center gap-2 bg-white border border-slate-300 rounded-xl px-3 py-2 select-dark">
+                    <Filter size={14} className="text-slate-400 shrink-0" />
+                    <select
+                        value={filterRole}
+                        onChange={(e) => setFilterRole(e.target.value)}
+                        className="text-sm text-slate-700 bg-transparent outline-none cursor-pointer"
+                    >
+                        <option value="">All Roles</option>
+                        <option value="admin">Admin</option>
+                        <option value="librarian">Librarian</option>
+                        <option value="student">Student</option>
+                    </select>
+                </div>
+
+                {/* Status filter */}
+                <div className="flex items-center gap-2 bg-white border border-slate-300 rounded-xl px-3 py-2 select-dark">
+                    <Filter size={14} className="text-slate-400 shrink-0" />
+                    <select
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                        className="text-sm text-slate-700 bg-transparent outline-none cursor-pointer"
+                    >
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="suspended">Suspended</option>
+                    </select>
                 </div>
             </div>
 
-            {/* Users Table */}
-            <div className="users-table-container">
-                <div className="table-header">
-                    <h2>All Users</h2>
-                    <div className="collection-info">
-                        <span className="user-count">
-                            {filteredUsers.length} of {totalUsers} users
+            {/* ── Table Card ── */}
+            <div className="card bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+
+                {/* Card header */}
+                <div className="card-header flex items-center justify-between px-6 py-4 border-b border-slate-200">
+                    <h2 className="text-base font-semibold text-primary-dark text-slate-800">All Users</h2>
+                    <div className="flex flex-col items-end gap-0.5">
+                        <span className="text-sm text-secondary-dark text-slate-500">
+                            {filtered.length} of {totalUsers} users
                         </span>
-                        <span className="page-info">
+                        <span className="text-xs text-slate-400">
                             Page {currentPage} of {totalPages}
                         </span>
                     </div>
                 </div>
 
                 {isLoading ? (
-                    <div className="loading-state">
-                        <div className="loading-spinner"></div>
-                        <p>Loading users...</p>
+                    /* ── Loading ── */
+                    <div className="flex flex-col items-center justify-center py-20 gap-4 text-slate-400">
+                        <div className="w-10 h-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
+                        <p className="text-sm font-medium">Loading users…</p>
                     </div>
                 ) : (
-                    <div className="table-wrapper">
-                        <table className="users-table">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
                             <thead>
-                                <tr>
-                                    <th>User</th>
-                                    <th>Department</th>
-                                    <th>Role</th>
-                                    <th>Status</th>
-                                    <th>Created</th>
-                                    <th>Actions</th>
+                                <tr className="table-th-dark bg-slate-50 border-b border-slate-200">
+                                    {["User", "Department", "Role", "Status", "Joined", "Actions"].map((h) => (
+                                        <th
+                                            key={h}
+                                            className="px-5 py-3.5 text-center text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap"
+                                        >
+                                            {h}
+                                        </th>
+                                    ))}
                                 </tr>
                             </thead>
-                            <tbody>
-                                {filteredUsers.length > 0 ? (
-                                    filteredUsers.map((user) => {
+                            <tbody className="divide-y divide-slate-100">
+                                {filtered.length > 0 ? (
+                                    filtered.map((user) => {
                                         const roleData = getRoleData(user.role)
+                                        const RoleIcon = roleData.icon
+                                        const sc = statusConfig[user.status] || statusConfig.inactive
+                                        const StatusIcon = sc.icon
+
                                         return (
-                                            <tr key={user.id} className="user-row">
-                                                <td className="user-info">
-                                                    <div className="user-avatar">
-                                                        <User size={20} />
-                                                    </div>
-                                                    <div className="user-details">
-                                                        <span className="user-name">{user.name}</span>
-                                                        <span className="user-email">{user.email}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="department">{user.department}</td>
-                                                <td className="role">
-                                                    <div className="role-dropDown-container">
-                                                        <button
-                                                            className={`role-dropDown-trigger ${user.role}`}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation()
-                                                                handleRoleDropDownToggle(user.id, e)
-                                                            }}
-                                                            style={{
-                                                                backgroundColor: roleData.bgColor,
-                                                                color: roleData.color,
-                                                            }}
-                                                        >
-                                                            <roleData.icon size={16} />
-                                                            <span>{roleData.label}</span>
-                                                            <ChevronDown
-                                                                size={14}
-                                                                className={`chevron ${openRoleDropDown === user.id ? "open" : ""}`}
-                                                            />
-                                                        </button>
+                                            <tr key={user.id} className="table-row-dark hover:bg-slate-50 transition-colors">
+                                                {/* User info */}
+                                                <td className="table-td-dark px-5 py-3.5 text-left">
+                                                    <div className="flex items-center gap-3 min-w-[180px]">
+                                                        <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                                                            <User size={16} />
+                                                        </div>
+                                                        <div className="flex flex-col min-w-0">
+                                                            <span className="font-semibold text-primary-dark text-slate-800 truncate">
+                                                                {user.name}
+                                                            </span>
+                                                            <span className="text-xs text-secondary-dark text-slate-500 truncate">
+                                                                {user.email}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </td>
-                                                <td className="status">
-                                                    <div
-                                                        className={`status-badge ${user.status}`}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation()
-                                                            handleToggleStatus(user.id, user.status)
-                                                        }}
+
+                                                {/* Department */}
+                                                <td className="table-td-dark px-5 py-3.5 text-center text-slate-700 font-medium">
+                                                    {user.department}
+                                                </td>
+
+                                                {/* Role badge / dropdown trigger */}
+                                                <td className="table-td-dark px-5 py-3.5 text-center">
+                                                    <button
+                                                        className="role-badge-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border-0 cursor-pointer transition-all hover:-translate-y-px hover:shadow-md"
+                                                        style={{ backgroundColor: roleData.bg, color: roleData.color }}
+                                                        onClick={(e) => { e.stopPropagation(); handleRoleDropDownToggle(user.id, e) }}
                                                     >
-                                                        {getStatusIcon(user.status)}
-                                                        <span>{user.status.charAt(0).toUpperCase() + user.status.slice(1)}</span>
-                                                    </div>
+                                                        <RoleIcon size={13} />
+                                                        {roleData.label}
+                                                        <ChevronDown
+                                                            size={12}
+                                                            className={`transition-transform duration-200 ${openRoleDropDown === user.id ? "rotate-180" : ""}`}
+                                                        />
+                                                    </button>
                                                 </td>
-                                                <td className="created-date">{new Date(user.created_at).toLocaleDateString()}</td>
-                                                <td className="actions">
-                                                    <div className="actions-menu">
+
+                                                {/* Status badge */}
+                                                <td className="table-td-dark px-5 py-3.5 text-center">
+                                                    <button
+                                                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border-0 transition-all ${sc.cls} ${user.status !== "inactive" ? "hover:opacity-80 hover:-translate-y-px cursor-pointer" : ""}`}
+                                                        onClick={(e) => { e.stopPropagation(); handleToggleStatus(user.id, user.status) }}
+                                                    >
+                                                        <StatusIcon size={13} />
+                                                        {sc.label}
+                                                    </button>
+                                                </td>
+
+                                                {/* Joined date */}
+                                                <td className="table-td-dark px-5 py-3.5 text-center text-xs text-slate-500 whitespace-nowrap">
+                                                    {new Date(user.created_at).toLocaleDateString("en-US", {
+                                                        year: "numeric", month: "short", day: "numeric",
+                                                    })}
+                                                </td>
+
+                                                {/* Actions */}
+                                                <td className="table-td-dark px-5 py-3.5 text-center">
+                                                    <div className="actions-menu flex justify-center">
                                                         <button
-                                                            className="actions-trigger"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation()
-                                                                handleDropDownToggle(user.id, e)
-                                                            }}
+                                                            className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                                                            onClick={(e) => { e.stopPropagation(); handleDropDownToggle(user.id, e) }}
                                                         >
                                                             <MoreHorizontal size={16} />
                                                         </button>
@@ -579,11 +460,11 @@ function Users() {
                                     })
                                 ) : (
                                     <tr>
-                                        <td colSpan="6" className="empty-state">
-                                            <div className="empty-content">
-                                                <UsersIcon size={48} />
-                                                <h3>No users found</h3>
-                                                <p>Try adjusting your search or filter criteria</p>
+                                        <td colSpan={6} className="py-20 text-center">
+                                            <div className="flex flex-col items-center gap-3 text-slate-400">
+                                                <UsersIcon size={44} className="text-slate-300" />
+                                                <p className="font-semibold text-slate-600">No users found</p>
+                                                <p className="text-sm">Try adjusting your search or filter criteria</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -591,30 +472,41 @@ function Users() {
                             </tbody>
                         </table>
 
-                        {/* Pagination */}
+                        {/* ── Pagination ── */}
                         {totalPages > 1 && !isLoading && (
-                            <div className="pagination">
-                                <button className="pagination-btn" onClick={handlePreviousPage} disabled={currentPage === 1}>
-                                    <ChevronLeft size={16} />
-                                    Previous
+                            <div className="flex items-center justify-center gap-2 px-6 py-5 border-t border-slate-100">
+                                <button
+                                    className="pagination-btn-dark flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                                    onClick={() => goToPage(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                >
+                                    <ChevronLeft size={15} /> Prev
                                 </button>
 
-                                <div className="pagination-numbers">
-                                    {generatePageNumbers().map((page, index) => (
+                                <div className="flex gap-1">
+                                    {pageNumbers().map((p, i) => (
                                         <button
-                                            key={index}
-                                            className={`pagination-number ${page === currentPage ? "active" : ""} ${page === "..." ? "dots" : ""}`}
-                                            onClick={() => typeof page === "number" && handlePageChange(page)}
-                                            disabled={page === "..." || page === currentPage}
+                                            key={i}
+                                            className={`w-9 h-9 text-sm font-medium rounded-lg transition ${p === currentPage
+                                                ? "bg-blue-600 text-white shadow-sm"
+                                                : p === "..."
+                                                    ? "cursor-default text-slate-400 bg-transparent border-0"
+                                                    : "pagination-btn-dark bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                                                }`}
+                                            onClick={() => typeof p === "number" && goToPage(p)}
+                                            disabled={p === "..." || p === currentPage}
                                         >
-                                            {page}
+                                            {p}
                                         </button>
                                     ))}
                                 </div>
 
-                                <button className="pagination-btn" onClick={handleNextPage} disabled={currentPage === totalPages}>
-                                    Next
-                                    <ChevronRight size={16} />
+                                <button
+                                    className="pagination-btn-dark flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                                    onClick={() => goToPage(currentPage + 1)}
+                                    disabled={currentPage === totalPages}
+                                >
+                                    Next <ChevronRight size={15} />
                                 </button>
                             </div>
                         )}
@@ -622,29 +514,40 @@ function Users() {
                 )}
             </div>
 
-            {/* Portal for actions dropDown menu - positioned relative to viewport */}
+            {/* ── Actions dropdown portal ── */}
             {openDropDown && (
                 <div
-                    className="dropDown-portal"
-                    style={{
-                        position: "fixed",
-                        top: dropDownPosition.top,
-                        left: dropDownPosition.left,
-                        zIndex: 9999,
-                    }}
+                    className="dropdown-portal fixed z-[9999]"
+                    style={{ top: dropDownPosition.top, left: dropDownPosition.left }}
                 >
-                    <div className="dropDown-menu">
-                        <button className="dropDown-item">
-                            <Eye size={14} />
+                    <div className="dropdown-dark dropdown-animate bg-white border border-slate-200 rounded-xl shadow-xl min-w-[160px] py-1 overflow-hidden">
+                        <button
+                            className="dropdown-item-dark flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
+                        >
+                            <Eye size={14} className="text-slate-400" />
                             View Details
                         </button>
-                        <button className="dropDown-item" onClick={() => handleEditUser(users.find((u) => u.id === openDropDown))}>
-                            <Edit size={14} />
+                        <button
+                            className="dropdown-item-dark flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
+                            onClick={() => {
+                                const u = users.find((x) => x.id === openDropDown)
+                                setSelectedUser(u)
+                                setShowEditModal(true)
+                                setOpenDropDown(null)
+                            }}
+                        >
+                            <Edit size={14} className="text-slate-400" />
                             Edit User
                         </button>
+                        <div className="mx-3 my-1 border-t border-slate-100" />
                         <button
-                            className="dropDown-item delete"
-                            onClick={() => handleDeleteUser(users.find((u) => u.id === openDropDown))}
+                            className="dropdown-item-dark flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
+                            onClick={() => {
+                                const u = users.find((x) => x.id === openDropDown)
+                                setSelectedUser(u)
+                                setShowDeleteModal(true)
+                                setOpenDropDown(null)
+                            }}
                         >
                             <Trash2 size={14} />
                             Delete User
@@ -653,53 +556,50 @@ function Users() {
                 </div>
             )}
 
-            {/* Portal for role dropDown menu - positioned relative to viewport */}
-            {openRoleDropDown && (
-                <div
-                    className="role-dropDown-portal"
-                    style={{
-                        position: "fixed",
-                        top: roleDropDownPosition.top,
-                        left: roleDropDownPosition.left,
-                        zIndex: 9999,
-                    }}
-                >
-                    <div className="role-dropDown-menu">
-                        <div className="role-dropDown-header">
-                            <span>Change Role</span>
-                        </div>
-                        {roleOptions.map((role) => {
-                            const user = users.find((u) => u.id === openRoleDropDown)
-                            const isCurrentRole = user?.role === role.value
-                            const IconComponent = role.icon
-
-                            return (
-                                <button
-                                    key={role.value}
-                                    className={`role-dropDown-item ${isCurrentRole ? "current" : ""}`}
-                                    onClick={() => !isCurrentRole && handleRoleChange(openRoleDropDown, role.value)}
-                                    disabled={isCurrentRole}
-                                    style={{
-                                        backgroundColor: isCurrentRole ? role.bgColor : "transparent",
-                                        color: isCurrentRole ? role.color : "#374151",
-                                    }}
-                                >
-                                    <div className="role-item-content">
-                                        <div className="role-item-main">
-                                            <IconComponent size={16} />
-                                            <div className="role-item-text">
-                                                <span className="role-item-label">{role.label}</span>
-                                                <span className="role-item-description">{role.description}</span>
+            {/* ── Role dropdown portal ── */}
+            {openRoleDropDown && (() => {
+                const user = users.find((u) => u.id === openRoleDropDown)
+                return (
+                    <div
+                        className="role-dropdown-portal fixed z-[9999]"
+                        style={{ top: roleDropDownPosition.top, left: roleDropDownPosition.left }}
+                    >
+                        <div className="role-dropdown-dark dropdown-animate bg-white border border-slate-200 rounded-xl shadow-xl w-72 py-1 overflow-hidden">
+                            <div className="px-4 py-2.5 border-b border-slate-100">
+                                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Change Role</span>
+                            </div>
+                            {roleOptions.map((role) => {
+                                const isCurrent = user?.role === role.value
+                                const Icon = role.icon
+                                return (
+                                    <button
+                                        key={role.value}
+                                        className={`flex items-center justify-between w-full px-4 py-3 text-left transition-colors ${isCurrent ? "opacity-100" : "hover:bg-slate-50"
+                                            }`}
+                                        style={isCurrent ? { backgroundColor: role.bg } : {}}
+                                        onClick={() => !isCurrent && handleRoleChange(openRoleDropDown, role.value)}
+                                        disabled={isCurrent}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div
+                                                className="w-8 h-8 rounded-lg flex items-center justify-center"
+                                                style={{ backgroundColor: role.bg, color: role.color }}
+                                            >
+                                                <Icon size={15} />
+                                            </div>
+                                            <div>
+                                                <div className="text-sm font-semibold text-slate-800">{role.label}</div>
+                                                <div className="text-xs text-slate-400">{role.description}</div>
                                             </div>
                                         </div>
-                                        {isCurrentRole && <Check size={16} className="role-check" />}
-                                    </div>
-                                </button>
-                            )
-                        })}
+                                        {isCurrent && <Check size={15} style={{ color: role.color }} />}
+                                    </button>
+                                )
+                            })}
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            })()}
 
             <UsersToast toasts={toasts} removeToast={removeToast} />
         </div>
