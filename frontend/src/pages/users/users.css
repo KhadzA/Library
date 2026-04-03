@@ -1,70 +1,4 @@
-/* Dark mode overrides — Tailwind can't target [data-theme="dark"] without config */
-[data-theme="dark"] .users-page {
-  background-color: var(--bg-primary, #0f172a);
-}
-[data-theme="dark"] .card {
-  background-color: var(--bg-secondary, #1e293b);
-  border-color: var(--border-primary, #334155);
-}
-[data-theme="dark"] .card-header {
-  background-color: var(--bg-secondary, #1e293b);
-  border-color: var(--border-primary, #334155);
-}
-[data-theme="dark"] .text-primary-dark {
-  color: #f8fafc;
-}
-[data-theme="dark"] .text-secondary-dark {
-  color: #cbd5e1;
-}
-[data-theme="dark"] .input-dark {
-  background-color: #1e293b;
-  border-color: #334155;
-  color: #f8fafc;
-}
-[data-theme="dark"] .input-dark::placeholder {
-  color: #64748b;
-}
-[data-theme="dark"] .select-dark {
-  background-color: #1e293b;
-  border-color: #334155;
-  color: #f8fafc;
-}
-[data-theme="dark"] .table-row-dark:hover {
-  background-color: #334155;
-}
-[data-theme="dark"] .table-th-dark {
-  background-color: #1e293b;
-  color: #f8fafc;
-  border-color: #334155;
-}
-[data-theme="dark"] .table-td-dark {
-  border-color: #334155;
-}
-[data-theme="dark"] .dropdown-dark {
-  background-color: #1e293b;
-  border-color: #334155;
-}
-[data-theme="dark"] .dropdown-item-dark {
-  color: #f8fafc;
-}
-[data-theme="dark"] .dropdown-item-dark:hover {
-  background-color: #334155;
-}
-[data-theme="dark"] .pagination-btn-dark {
-  background-color: #1e293b;
-  border-color: #334155;
-  color: #cbd5e1;
-}
-[data-theme="dark"] .pagination-btn-dark:hover:not(:disabled) {
-  background-color: #334155;
-  color: #f8fafc;
-}
-[data-theme="dark"] .role-dropdown-dark {
-  background-color: #1e293b;
-  border-color: #334155;
-}
-
-/* Dropdown slide-in animation */
+/* Dropdown slide-in animation — Tailwind can't do keyframes without config */
 @keyframes dropdownSlideIn {
   from {
     opacity: 0;
@@ -77,19 +11,4 @@
 }
 .dropdown-animate {
   animation: dropdownSlideIn 0.15s ease-out;
-}
-
-/* Custom scrollbar for modal */
-.custom-scroll::-webkit-scrollbar {
-  width: 5px;
-}
-.custom-scroll::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-.custom-scroll::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
-}
-.custom-scroll::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
 }
