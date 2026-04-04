@@ -133,28 +133,32 @@ function Home() {
             <hr className="border-t border-white/10 mx-16" />
 
             {/* CTA */}
-            <section className="py-20 px-6 bg-to-r from-sky-500 to-blue-600">
-                <div className="max-w-2xl mx-auto text-center text-white">
-                    <h2 className="text-3xl font-bold mb-3">Ready to Get Started?</h2>
-                    <p className="opacity-90 mb-8">Join AlimBrary today and explore the library management system.</p>
-                    <button onClick={() => navigate("/auth/signup")}
-                        className="flex items-center gap-2 px-8 py-3 rounded-lg bg-white text-sky-600
-                                       font-semibold mx-auto hover:bg-slate-100 transition-colors">
-                        Sign Up Now <ArrowRight size={18} />
-                    </button>
+            <section className="py-16 px-8 bg-gradient-to-br from-blue-500 to-blue-700">
+                <div className="max-w-4xl mx-auto text-center">
+                    <h2 className="text-4xl font-bold text-white mb-4">Ready to Get Started?</h2>
+                    <p className="text-xl text-white/90 mb-8">Join AlimBrary today and explore the library management system.</p>
+                    <div className="flex flex-col items-center gap-4">
+                        <button onClick={() => navigate("/auth/signup")} className="btn-primary large">
+                            Sign Up Now <ArrowRight size={20} />
+                        </button>
+                    </div>
                 </div>
             </section>
 
             {/* Footer */}
-            <footer className="py-10 px-6 bg-slate-900 dark:bg-slate-950 text-white">
-                <div className="max-w-6xl mx-auto text-center">
-                    <div className="flex items-center justify-center gap-2 font-bold text-lg mb-2">
-                        <BookOpen size={20} className="text-sky-400" />
-                        <span>AlimBrary</span>
+            <footer className="bg-slate-900 text-white py-12 px-8">
+                <div className="max-w-4xl mx-auto">
+                    <div className="flex justify-center mb-8">
+                        <div className="text-center">
+                            <div className="flex items-center justify-center gap-2 text-white text-2xl font-bold mb-4">
+                                <BookOpen size={24} />
+                                <span>AlimBrary</span>
+                            </div>
+                            <p className="text-slate-400">A student project demonstrating modern library management system development.</p>
+                        </div>
                     </div>
-                    <p className="text-slate-500 text-sm mb-6">A student project demonstrating modern library management system development.</p>
-                    <div className="border-t border-slate-800 pt-6 text-slate-600 text-xs">
-                        © 2025 AlimBrary. Student Project.
+                    <div className="border-t border-slate-700 pt-4 text-center text-slate-400 text-sm">
+                        <p>&copy; 2025 AlimBrary. Student Project.</p>
                     </div>
                 </div>
             </footer>
