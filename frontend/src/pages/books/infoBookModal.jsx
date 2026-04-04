@@ -1,19 +1,10 @@
 "use client"
+
 import { useEffect, useState } from "react"
-import "./infoBookModal.css"
 import { getBookMetadataByISBN } from "../../api/book"
 import {
-    X,
-    BookOpen,
-    Calendar,
-    User,
-    Tag,
-    Hash,
-    Building,
-    FileText,
-    ToggleLeft,
-    ToggleRight,
-    Loader2,
+    X, BookOpen, Calendar, User, Tag, Hash,
+    Building, FileText, ToggleLeft, ToggleRight, Loader2,
 } from "lucide-react"
 
 function InfoBookModal({ isOpen, onClose, book }) {
@@ -21,311 +12,204 @@ function InfoBookModal({ isOpen, onClose, book }) {
     const [isLoadingGoogle, setIsLoadingGoogle] = useState(false)
 
     useEffect(() => {
-        const fetchGoogleMetadata = async () => {
-            if (!book?.isbn) {
-                setGoogleData(null)
-                return
-            }
-
+        const fetchGoogle = async () => {
+            if (!book?.isbn) { setGoogleData(null); return }
             setIsLoadingGoogle(true)
             try {
                 const result = await getBookMetadataByISBN(book.isbn)
-                if (result.success && result.data) {
-                    setGoogleData(result.data)
-                } else {
-                    setGoogleData(null)
-                }
-            } catch (error) {
-                console.error("Error fetching Google Books data:", error)
+                setGoogleData(result.success && result.data ? result.data : null)
+            } catch {
                 setGoogleData(null)
             } finally {
                 setIsLoadingGoogle(false)
             }
         }
-
-        if (isOpen && book) {
-            fetchGoogleMetadata()
-        } else {
-            setGoogleData(null)
-        }
+        if (isOpen && book) fetchGoogle()
+        else setGoogleData(null)
     }, [isOpen, book])
 
     if (!isOpen || !book) return null
 
-    // Use Google data if available, otherwise fall back to original book data
     const displayData = {
         title: googleData?.title || book.title,
         author: googleData?.author || book.author,
         genre: googleData?.genre || book.genre,
         description: googleData?.description || book.description,
         published_year: googleData?.published_year || book.published_year,
-        published_date: googleData?.published_date || null, // Add this line
-        // Keep original data for these fields as they're library-specific
-        isbn: book.isbn,
-        department: book.department,
-        availability: book.availability,
-        content: book.content,
-        added_by: book.added_by,
-        id: book.id,
-        created_at: book.created_at,
-        updated_at: book.updated_at,
-        cover: book.cover,
+        published_date: googleData?.published_date || null,
+        isbn: book.isbn, department: book.department, availability: book.availability,
+        content: book.content, added_by: book.added_by, id: book.id,
+        created_at: book.created_at, updated_at: book.updated_at, cover: book.cover,
     }
 
-    // Helper function to format the published date
-    const formatPublishedDate = (dateString) => {
-        if (!dateString) return null
-
+    const formatDate = (d) => {
+        if (!d) return null
         try {
-            // Handle different date formats from Google Books API
-            if (dateString.length === 4) {
-                // Just year: "1997"
-                return dateString
-            } else if (dateString.length === 7) {
-                // Year-Month: "1997-06"
-                const date = new Date(dateString + "-01")
-                return date.toLocaleDateString("en-US", { year: "numeric", month: "long" })
-            } else if (dateString.length >= 10) {
-                // Full date: "1997-06-26"
-                const date = new Date(dateString)
-                return date.toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                })
-            }
-            return dateString
-        } catch (error) {
-            console.error("Error formatting date:", error)
-            return dateString
-        }
+            if (d.length === 4) return d
+            if (d.length === 7) return new Date(d + "-01").toLocaleDateString("en-US", { year: "numeric", month: "long" })
+            return new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+        } catch { return d }
     }
+
+    const enhanced = (original, google) => google && google !== original
+
+    const detailItems = [
+        { icon: Hash, label: "ISBN", value: displayData.isbn, star: false },
+        { icon: Tag, label: "Genre", value: displayData.genre, star: enhanced(book.genre, googleData?.genre) },
+        { icon: Building, label: "Department", value: displayData.department, star: false },
+        ...(displayData.published_date || displayData.published_year ? [{
+            icon: Calendar,
+            label: "Published Date",
+            value: displayData.published_date ? formatDate(displayData.published_date) : displayData.published_year,
+            star: !!googleData?.published_date
+        }] : []),
+        { icon: FileText, label: "Content Available", value: displayData.content ? "Yes" : "No", star: false },
+        { icon: User, label: "Added By", value: displayData.added_by || "Admin", star: false },
+    ]
 
     return (
-        <div className="info-modal-overlay" onClick={onClose}>
-            <div className="info-book-modal" onClick={(e) => e.stopPropagation()}>
-                {/* Modal Header */}
-                <div className="info-modal-header">
-                    <div className="header-icon-wrapper">
-                        <BookOpen size={24} className="header-icon" />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000] p-5" onClick={onClose}>
+            <div
+                className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 dark:border-slate-700"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Header */}
+                <div className="flex items-center gap-3 px-7 py-6 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/20 rounded-t-2xl">
+                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/40 rounded-full flex items-center justify-center flex-shrink-0">
+                        <BookOpen size={22} className="text-blue-600 dark:text-blue-400" />
                     </div>
-                    <h2>Book Information</h2>
+                    <h2 className="text-xl font-semibold text-blue-800 dark:text-blue-300 flex-1">Book Information</h2>
                     {isLoadingGoogle && (
-                        <div className="google-loading">
-                            <Loader2 size={16} className="loading-spinner" />
+                        <div className="flex items-center gap-2 text-slate-500 text-xs">
+                            <Loader2 size={14} className="animate-spin" />
                             <span>Fetching details...</span>
                         </div>
                     )}
-                    <button className="info-close-btn" onClick={onClose}>
+                    <button onClick={onClose} className="p-2 rounded-lg text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-100/50 dark:hover:bg-blue-900/30 transition-colors">
                         <X size={20} />
                     </button>
                 </div>
 
-                {/* Modal Content */}
-                <div className="info-modal-content">
-                    {/* Book Cover and Basic Info */}
-                    <div className="book-overview">
-                        <div className="book-cover-large">
+                <div className="p-7">
+                    {/* Book overview */}
+                    <div className="flex gap-6 mb-8 pb-6 border-b border-slate-100 dark:border-slate-700">
+                        <div className="w-40 h-56 flex-shrink-0 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-700 shadow-md">
                             {displayData.cover ? (
                                 <img
                                     src={`http://localhost:3000/covers/${encodeURIComponent(displayData.cover)}`}
-                                    alt={`${displayData.title} cover`}
-                                    onError={(e) => {
-                                        e.target.onerror = null
-                                        e.target.src = "http://localhost:3000/covers/Lorem Ipsum.png"
-                                    }}
+                                    alt={displayData.title}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => { e.target.onerror = null; e.target.src = "http://localhost:3000/covers/Lorem Ipsum.png" }}
                                 />
                             ) : (
-                                <div className="cover-placeholder-large">
-                                    <BookOpen size={64} />
+                                <div className="w-full h-full flex items-center justify-center text-slate-300 dark:text-slate-500">
+                                    <BookOpen size={56} />
                                 </div>
                             )}
                         </div>
-                        <div className="book-basic-info">
-                            <h3 className="info-book-title">
+                        <div className="flex-1 flex flex-col gap-3">
+                            <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 leading-snug">
                                 {displayData.title}
-                                {googleData?.title && googleData.title !== book.title && <span className="google-enhanced">✨</span>}
+                                {enhanced(book.title, googleData?.title) && <span className="ml-2 text-amber-400">✨</span>}
                             </h3>
-                            <p className="info-book-author">
+                            <p className="text-lg italic text-slate-500 dark:text-slate-400">
                                 by {displayData.author}
-                                {googleData?.author && googleData.author !== book.author && <span className="google-enhanced">✨</span>}
+                                {enhanced(book.author, googleData?.author) && <span className="ml-1 text-amber-400">✨</span>}
                             </p>
-                            <div className={`info-availability-badge ${displayData.availability}`}>
+                            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium w-fit ${displayData.availability === "available" ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400" : "bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400"}`}>
                                 {displayData.availability === "available" ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
-                                <span>{displayData.availability === "available" ? "Available" : "Unavailable"}</span>
+                                {displayData.availability === "available" ? "Available" : "Unavailable"}
                             </div>
                         </div>
                     </div>
 
-                    {/* Data Source Indicator */}
+                    {/* Google Badge */}
                     {googleData && (
-                        <div className="data-source-indicator">
-                            <span className="google-badge">✨ Enhanced with Google Books data</span>
+                        <div className="flex justify-center mb-6">
+                            <span className="inline-flex items-center gap-1.5 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-700 px-4 py-2 rounded-full text-xs font-medium">
+                                ✨ Enhanced with Google Books data
+                            </span>
                         </div>
                     )}
 
-                    {/* Detailed Information */}
-                    <div className="book-details-grid">
-                        <div className="detail-item">
-                            <div className="detail-icon">
-                                <Hash size={16} />
-                            </div>
-                            <div className="detail-content">
-                                <span className="detail-label">ISBN</span>
-                                <span className="detail-value">{displayData.isbn}</span>
-                            </div>
-                        </div>
-
-                        <div className="detail-item">
-                            <div className="detail-icon">
-                                <Tag size={16} />
-                            </div>
-                            <div className="detail-content">
-                                <span className="detail-label">Genre</span>
-                                <span className="detail-value">
-                                    {displayData.genre}
-                                    {googleData?.genre && googleData.genre !== book.genre && (
-                                        <span className="google-enhanced-small">✨</span>
-                                    )}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="detail-item">
-                            <div className="detail-icon">
-                                <Building size={16} />
-                            </div>
-                            <div className="detail-content">
-                                <span className="detail-label">Department</span>
-                                <span className="detail-value">{displayData.department}</span>
-                            </div>
-                        </div>
-
-                        {(displayData.published_date || displayData.published_year) && (
-                            <div className="detail-item">
-                                <div className="detail-icon">
-                                    <Calendar size={16} />
+                    {/* Detail Grid */}
+                    <div className="grid grid-cols-2 gap-4 mb-8">
+                        {detailItems.map(({ icon: label, value, star }) => (
+                            <div key={label} className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600">
+                                <div className="w-8 h-8 bg-white dark:bg-slate-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <Icon size={16} className="text-slate-500 dark:text-slate-400" />
                                 </div>
-                                <div className="detail-content">
-                                    <span className="detail-label">Published Date</span>
-                                    <span className="detail-value">
-                                        {displayData.published_date
-                                            ? formatPublishedDate(displayData.published_date)
-                                            : displayData.published_year}
-                                        {googleData?.published_date && <span className="google-enhanced-small">✨</span>}
+                                <div className="flex flex-col gap-0.5 min-w-0">
+                                    <span className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide">{label}</span>
+                                    <span className="text-sm font-semibold text-slate-800 dark:text-slate-100 break-words">
+                                        {value}
+                                        {star && <span className="ml-1 text-amber-400 text-xs">✨</span>}
                                     </span>
                                 </div>
                             </div>
-                        )}
-
-                        <div className="detail-item">
-                            <div className="detail-icon">
-                                <FileText size={16} />
-                            </div>
-                            <div className="detail-content">
-                                <span className="detail-label">Content Available</span>
-                                <span className="detail-value">{displayData.content ? "Yes" : "No"}</span>
-                            </div>
-                        </div>
-
-                        <div className="detail-item">
-                            <div className="detail-icon">
-                                <User size={16} />
-                            </div>
-                            <div className="detail-content">
-                                <span className="detail-label">Added By</span>
-                                <span className="detail-value">{displayData.added_by || "Admin"}</span>
-                            </div>
-                        </div>
+                        ))}
                     </div>
 
                     {/* Description */}
                     {displayData.description && (
-                        <div className="book-description-section">
-                            <h4>
+                        <div className="mb-8">
+                            <h4 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-3 flex items-center gap-2">
                                 Description
-                                {googleData?.description && googleData.description !== book.description && (
-                                    <span className="google-enhanced-small">✨ Enhanced</span>
-                                )}
+                                {enhanced(book.description, googleData?.description) && <span className="text-xs text-amber-500 font-normal">✨ Enhanced</span>}
                             </h4>
-                            <p className="full-description">{displayData.description}</p>
+                            <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl border-l-4 border-blue-400">
+                                {displayData.description}
+                            </p>
                         </div>
                     )}
 
-                    {/* Additional Metadata */}
-                    <div className="metadata-section">
-                        <h4>Library Information</h4>
-                        <div className="metadata-grid">
-                            <div className="metadata-item">
-                                <span className="metadata-label">Book ID:</span>
-                                <span className="metadata-value">{displayData.id}</span>
-                            </div>
-                            {displayData.created_at && (
-                                <div className="metadata-item">
-                                    <span className="metadata-label">Added on:</span>
-                                    <span className="metadata-value">{new Date(displayData.created_at).toLocaleDateString()}</span>
+                    {/* Library Info */}
+                    <div className="mb-6">
+                        <h4 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-3">Library Information</h4>
+                        <div className="grid grid-cols-2 gap-3">
+                            {[
+                                ["Book ID", displayData.id],
+                                displayData.created_at ? ["Added on", new Date(displayData.created_at).toLocaleDateString()] : null,
+                                displayData.updated_at ? ["Last updated", new Date(displayData.updated_at).toLocaleDateString()] : null,
+                            ].filter(Boolean).map(([label, val]) => (
+                                <div key={label} className="flex justify-between items-center px-4 py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg">
+                                    <span className="text-sm text-slate-500 dark:text-slate-400">{label}</span>
+                                    <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{val}</span>
                                 </div>
-                            )}
-                            {displayData.updated_at && (
-                                <div className="metadata-item">
-                                    <span className="metadata-label">Last updated:</span>
-                                    <span className="metadata-value">{new Date(displayData.updated_at).toLocaleDateString()}</span>
-                                </div>
-                            )}
+                            ))}
                         </div>
                     </div>
 
-                    {/* Original vs Enhanced Data Comparison */}
+                    {/* Enhancement comparison */}
                     {googleData && (
-                        <div className="data-comparison">
-                            <h4>Data Enhancement Details</h4>
-                            <div className="comparison-grid">
-                                {googleData.title && googleData.title !== book.title && (
-                                    <div className="comparison-item">
-                                        <span className="comparison-label">Title:</span>
-                                        <div className="comparison-values">
-                                            <span className="original-value">Original: {book.title}</span>
-                                            <span className="enhanced-value">Enhanced: {googleData.title} ✨</span>
+                        <div className="p-5 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-700/50 rounded-xl">
+                            <h4 className="text-base font-semibold text-amber-800 dark:text-amber-400 mb-4">Data Enhancement Details</h4>
+                            <div className="flex flex-col gap-4">
+                                {[
+                                    enhanced(book.title, googleData.title) && ["Title", book.title, googleData.title],
+                                    enhanced(book.author, googleData.author) && ["Author", book.author, googleData.author],
+                                    enhanced(book.genre, googleData.genre) && ["Genre", book.genre, googleData.genre],
+                                    googleData?.published_date && googleData.published_date !== book.published_year && ["Published Date", book.published_year || "Not specified", formatDate(googleData.published_date)],
+                                ].filter(Boolean).map(([label, orig, enhanced]) => (
+                                    <div key={label}>
+                                        <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide mb-2">{label}</p>
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-sm px-3 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400">Original: {orig}</span>
+                                            <span className="text-sm px-3 py-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg text-amber-800 dark:text-amber-300 font-medium">Enhanced: {enhanced} ✨</span>
                                         </div>
                                     </div>
-                                )}
-                                {googleData.author && googleData.author !== book.author && (
-                                    <div className="comparison-item">
-                                        <span className="comparison-label">Author:</span>
-                                        <div className="comparison-values">
-                                            <span className="original-value">Original: {book.author}</span>
-                                            <span className="enhanced-value">Enhanced: {googleData.author} ✨</span>
-                                        </div>
-                                    </div>
-                                )}
-                                {googleData.genre && googleData.genre !== book.genre && (
-                                    <div className="comparison-item">
-                                        <span className="comparison-label">Genre:</span>
-                                        <div className="comparison-values">
-                                            <span className="original-value">Original: {book.genre}</span>
-                                            <span className="enhanced-value">Enhanced: {googleData.genre} ✨</span>
-                                        </div>
-                                    </div>
-                                )}
-                                {googleData?.published_date && googleData.published_date !== book.published_year && (
-                                    <div className="comparison-item">
-                                        <span className="comparison-label">Published Date:</span>
-                                        <div className="comparison-values">
-                                            <span className="original-value">Original: {book.published_year || "Not specified"}</span>
-                                            <span className="enhanced-value">
-                                                Enhanced: {formatPublishedDate(googleData.published_date)} ✨
-                                            </span>
-                                        </div>
-                                    </div>
-                                )}
+                                ))}
                             </div>
                         </div>
                     )}
                 </div>
 
-                {/* Modal Footer */}
-                <div className="info-modal-footer">
-                    <button className="close-info-btn" onClick={onClose}>
+                {/* Footer */}
+                <div className="flex justify-center px-7 pb-7 pt-3 border-t border-slate-200 dark:border-slate-700">
+                    <button
+                        onClick={onClose}
+                        className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/20 active:translate-y-0"
+                    >
                         Close
                     </button>
                 </div>
