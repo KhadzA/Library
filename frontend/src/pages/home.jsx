@@ -75,7 +75,7 @@ function Home() {
                     </div>
                     <div className="flex justify-center">
                         {/* Replace this image with the books page. alter it with light and dark mode depends on the theme */}
-                        <img src="../../libraryBooks-light.png" alt="hero" className="opacity-60 max-w-sm w-full" />
+                        <img src="../../Temporary.png" alt="Books" className="opacity-60 max-w-sm w-full" />
                     </div>
                 </div>
             </section>
@@ -125,7 +125,7 @@ function Home() {
                     </div>
                     <div className="flex justify-center">
                         {/* Replace this image with the dashboard page. alter it with light and dark mode depends on the theme */}
-                        <img src="../../libraryDashboard-light.png" alt="benefits" className="opacity-60 max-w-sm w-full" />
+                        <img src="../../Temporary.png" alt="Dashboard" className="opacity-60 max-w-sm w-full" />
                     </div>
                 </div>
             </section>
