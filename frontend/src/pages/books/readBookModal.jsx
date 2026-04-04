@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { X, BookOpen, Maximize2, Minimize2 } from "lucide-react"
 
-function ReadBookModal({ isOpen, onClose, book }) {
+function ReadBookModal({ isOpen, onClose, book, FOLDER_URL }) {
     const [isFullscreen, setIsFullscreen] = useState(false)
     const [zoomLevel] = useState(100)
     const [pdfExists, setPdfExists] = useState(null)
