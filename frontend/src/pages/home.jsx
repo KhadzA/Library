@@ -130,17 +130,16 @@ function Home() {
                 </div>
             </section>
 
-            <hr className="border-t border-white/10 mx-16" />
 
             {/* CTA */}
-            <section className="py-16 px-8 bg-gradient-to-br from-blue-500 to-blue-700">
+            <section className="py-16 px-8 bg-gradient-to-br bg-slate-50 dark:bg-slate-800/40">
                 <div className="max-w-4xl mx-auto text-center">
-                    <h2 className="text-4xl font-bold text-white mb-4">Ready to Get Started?</h2>
-                    <p className="text-xl text-white/90 mb-8">Join AlimBrary today and explore the library management system.</p>
+                    <h2 className="text-3xl font-bold mb-3">Ready to Get Started?</h2>
+                    <p className="text-slate-500 dark:text-slate-400 leading-relaxed mb-8">Join AlimBrary today and explore the library management system.</p>
                     <div className="flex flex-col items-center gap-4">
                         <button
                             onClick={() => navigate("/auth/signup")}
-                            className="flex items-center gap-2 bg-white text-blue-600 font-semibold px-8 py-4 rounded-lg hover:bg-blue-50 transition-all duration-200"
+                            className="flex items-center gap-2 bg-sky-500 text-white font-semibold px-8 py-4 rounded-lg hover:bg-sky-400 transition-all duration-200"
                         >
                             Sign Up Now <ArrowRight size={20} />
                         </button>
