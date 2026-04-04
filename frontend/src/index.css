@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+/* LAYOUT */
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* DASHBOARD */
+/* ── Keyframe used by animate-[fadeInUp_0.6s_ease-out] in dashboard ── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Custom scrollbar for .activity-feed ── */
+.activity-feed::-webkit-scrollbar {
+  width: 4px;
+}
+.activity-feed::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+.activity-feed::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 2px;
+}
+.activity-feed::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+:where(.dark, .dark *) .activity-feed::-webkit-scrollbar-track {
+  background: #334155;
+}
+:where(.dark, .dark *) .activity-feed::-webkit-scrollbar-thumb {
+  background: #64748b;
+}
+:where(.dark, .dark *) .activity-feed::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
