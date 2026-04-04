@@ -130,6 +130,8 @@ function Home() {
                 </div>
             </section>
 
+            <hr className="border-t border-white/10 mx-16" />
+
             {/* CTA */}
             <section className="py-20 px-6 bg-to-r from-sky-500 to-blue-600">
                 <div className="max-w-2xl mx-auto text-center text-white">
