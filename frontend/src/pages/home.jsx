@@ -133,14 +133,14 @@ function Home() {
             <hr className="border-t border-white/10 mx-16" />
 
             {/* CTA */}
-            <section className="py-16 px-8 bg-gradient-to-br from-blue-500 to-blue-700">
+            <section className="py-16 px-8 bg-slate-800/50 border-t border-slate-700/50">
                 <div className="max-w-4xl mx-auto text-center">
                     <h2 className="text-4xl font-bold text-white mb-4">Ready to Get Started?</h2>
-                    <p className="text-xl text-white/90 mb-8">Join AlimBrary today and explore the library management system.</p>
+                    <p className="text-lg text-slate-400 mb-8">Join AlimBrary today and explore the library management system.</p>
                     <div className="flex flex-col items-center gap-4">
                         <button
                             onClick={() => navigate("/auth/signup")}
-                            className="flex items-center gap-2 bg-white text-blue-600 font-semibold px-8 py-4 rounded-lg hover:bg-blue-50 transition-all duration-200"
+                            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold px-8 py-4 rounded-lg transition-all duration-200"
                         >
                             Sign Up Now <ArrowRight size={20} />
                         </button>
