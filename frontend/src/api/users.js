@@ -23,6 +23,21 @@ export const viewUsers = async (page = 1, limit = 10, search = "") => {
   }
 };
 
+export const viewUser = async (id) => {
+  const token = localStorage.getItem("token");
+
+  try {
+    const res = await axios.get(`${API_URL}/api/users/${id}/view`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return { success: true, user: res.data.user };
+  } catch (err) {
+    console.error("Failed to fetch user:", err);
+    return { success: false, error: err };
+  }
+};
+
 export const addUser = async (form) => {
   try {
     const token = localStorage.getItem("token");
