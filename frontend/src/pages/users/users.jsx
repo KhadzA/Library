@@ -328,7 +328,7 @@ function Users() {
                                                 <div className="actions-menu flex justify-center">
                                                     <button
                                                         className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200
-                              hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                                                                 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                                                         onClick={(e) => { e.stopPropagation(); handleDropDownToggle(user.id, e) }}
                                                     >
                                                         <MoreHorizontal size={16} />
