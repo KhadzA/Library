@@ -51,6 +51,25 @@ module.exports = (db) => {
     res.json({ users, total: count, page, limit });
   });
 
+  // GET single user by id
+  router.get("/:id/view", async (req, res) => {
+    const { id } = req.params;
+
+    const { data, error } = await db
+      .from("users")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) return res.status(500).json({ success: false, error });
+    if (!data)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
+    res.json({ success: true, user: data });
+  });
+
   // POST add user manually (admin only)
   router.post("/add", authenticateAdmin, async (req, res) => {
     const { email, name, department, password, role, status } = req.body;
